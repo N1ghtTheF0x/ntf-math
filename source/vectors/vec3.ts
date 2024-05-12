@@ -20,7 +20,7 @@ export class Vec3 implements IVec3
     {
         if(a == null || typeof a == "undefined")
             throw new ResolveError("Vec3",a)
-        if(check_number_array(a,3))
+        if(check_number_array(a,3) || check_number_array(a,4))
             return new this(a[0],a[1],a[2],check_number(a[3]) ? a[3] : undefined)
         if(has_property(a,"x","number") && has_property(a,"y","number") && has_property(a,"z","number"))
             return new this(a.x,a.y,a.z,has_property(a,"w","number") ? a.w : undefined)
@@ -233,5 +233,9 @@ export class Vec3 implements IVec3
     public invert()
     {
         return this.multiply(-1)
+    }
+    public round()
+    {
+        return new Vec3(Math.round(this.x),Math.round(this.y),Math.round(this.z),Math.round(this.w))
     }
 }

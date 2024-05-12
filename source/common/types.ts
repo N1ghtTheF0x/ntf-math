@@ -9,11 +9,64 @@ export type JavaScriptTypeMap = {
     "object": object
     "function": Function
 }
+export type HexDigit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "A" | "B" | "C" | "D" | "E" | "F"
+export type HexLike = `#${string}` | `0x${string}` | string
 export type Predicate<T> = (a: unknown) => a is T
 
 export function check_number(obj: unknown): obj is number
 {
     return obj != null && typeof obj == "number" && !isNaN(obj)
+}
+
+export function check_hex_digit(obj: unknown): obj is HexDigit
+{
+    if(!check_string(obj) || obj.length != 1)
+        return false
+    switch(obj.toUpperCase())
+    {
+        default:
+            return false
+        case "0":
+        case "1":
+        case "2":
+        case "3":
+        case "4":
+        case "5":
+        case "6":
+        case "7":
+        case "8":
+        case "9":
+        case "A":
+        case "B":
+        case "C":
+        case "D":
+        case "E":
+        case "F":
+            return true
+    }
+}
+
+export function get_hex_part(string: string): string
+{
+    let offset = 0
+    if(string.startsWith("#") || string.startsWith("$"))
+        offset = 1
+    if(string.startsWith("0x"))
+        offset = 2
+    return string.substring(offset)
+}
+
+export function check_hex(obj: unknown): obj is HexLike
+{
+    if(!check_string(obj))
+        return false
+    let offset = 0
+    if(obj.startsWith("#") || obj.startsWith("$"))
+        offset = 1
+    if(obj.startsWith("0x"))
+        offset = 2
+    const value = get_hex_part(obj).split("").map((char) => parseInt(char.toUpperCase(),16))
+    return check_number_array(value)
 }
 
 export function check_string(obj: unknown): obj is string

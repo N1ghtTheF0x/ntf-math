@@ -16,6 +16,7 @@ export * from "./matrices/mat4"
 export * from "./vectors/vec2"
 export * from "./vectors/vec3"
 export * from "./quaternion"
+export * from "./color"
 
 export function log_hypot(a: number,b: number)
 {

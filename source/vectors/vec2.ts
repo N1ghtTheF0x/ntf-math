@@ -21,10 +21,10 @@ export class Vec2 implements IVec2
     {
         if(a == null || typeof a == "undefined")
             throw new ResolveError("Vec2",a)
-        if(check_number_array(a,2))
+        if(check_number_array(a,2) || check_number_array(a,3))
             return new this(a[0],a[1],check_number(a[2]) ? a[2] : undefined)
         if(has_property(a,"x","number") && has_property(a,"y","number"))
-            return new this(a.x,a.y)
+            return new this(a.x,a.y,has_property(a,"w","number") ? a.w : undefined)
         if(check_string(a))
         {
             const [sxy,sw] = a.split(";")
@@ -232,5 +232,9 @@ export class Vec2 implements IVec2
     public invert()
     {
         return this.multiply(-1)
+    }
+    public round()
+    {
+        return new Vec2(Math.round(this.x),Math.round(this.y),Math.round(this.w))
     }
 }

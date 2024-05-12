@@ -44,10 +44,17 @@ export class Rectangle implements IRectangle
             const [spos,ssize] = a.split("|")
             const pos = Vec2.resolve(spos)
             const size = Square.resolve(ssize)
-            return new this(pos.x,pos.y,size.width,size.height)
+            const rect = new this(pos.x,pos.y,size.width,size.height)
+            rect.w = pos.w
+            return rect
         }
         if(has_property(a,"x","number") && has_property(a,"y","number") && has_property(a,"width","number") && has_property(a,"height","number"))
-            return new this(a.x,a.y,a.width,a.height)
+        {
+            const rect = new this(a.x,a.y,a.width,a.height)
+            if(has_property(a,"w","number"))
+                rect.w = a.w
+            return rect
+        }
         throw new ResolveError("Rectangle",a)
     }
     public static is(a: unknown): a is RectangleLike
