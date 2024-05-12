@@ -1,0 +1,1 @@
+import * as math from "./source/index"

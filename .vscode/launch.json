@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "chrome",
+            "request": "launch",
+            "url": "http://localhost:43434/test.html",
+            "name": "Test Webpage",
+            "server":{
+                "program": "server.js"
+            }
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch Test",
+            "runtimeArgs": [
+                "-r","ts-node/register/transpile-only"
+            ],
+            "args": [
+                "test.ts"
+            ]
+        }
+    ]
+}
