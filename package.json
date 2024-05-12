@@ -1,6 +1,6 @@
 {
   "name": "@ntf/math",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "Another math library",
   "files": ["dist"],
   "main": "./dist/cjs/index.js",
@@ -17,17 +17,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/N1ghtTheF0x/ntf-.git"
+    "url": "git+https://github.com/N1ghtTheF0x/ntf-math.git"
   },
   "keywords": [
-    "esm", "cjs", "nodejs", "browser"
+    "esm", "cjs", "nodejs", "browser", "math", "vector2", "vector3", "matrix"
   ],
   "author": "N1ghtTheF0x",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/N1ghtTheF0x/ntf-/issues"
+    "url": "https://github.com/N1ghtTheF0x/ntf-math/issues"
   },
-  "homepage": "https://github.com/N1ghtTheF0x/ntf-#readme",
+  "homepage": "https://github.com/N1ghtTheF0x/ntf-math#readme",
   "devDependencies": {
     "typescript": "latest",
     "ts-node": "latest",
