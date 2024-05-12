@@ -36,6 +36,6 @@ const { ... } = require("@ntf/math");
 import { ... } from "@ntf/math";
 ```
 
-### License stuff that nobody reads
+## License stuff that nobody reads
 
 Just like any [Open Source Project](https://github.com/N1ghtTheF0x/ntf-math) this has a [License](./LICENSE), the MIT License
