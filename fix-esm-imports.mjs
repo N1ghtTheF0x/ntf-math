@@ -93,7 +93,7 @@ function fix_file(file)
     // fix all the imports
     const fixedImports = imports.map((imp) => fix_path(imp,file))
     const exports = lines // get all the exports
-    .filter((line) => line.startsWith("export") && line.includes("from"))
+    .filter((line) => line.startsWith("export") && line.includes("from") && (line.endsWith('";') || line.endsWith('"')))
     // fix all the exports
     const fixedExports = exports.map((exp) => fix_path(exp,file))
     // if no fixes are required, then there's nothing to do
