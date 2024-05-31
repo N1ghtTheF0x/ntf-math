@@ -56,5 +56,5 @@ console.dir(math.Quaternion.resolve({w: -1,x: 2,y: 3,z: 4}))
 
 console.info("[COLOR]")
 console.dir(math.RGBAColor.resolve([1,0.5,0.25,1]))
-console.dir(math.RGBAColor.resolve("rgb(0,1,0)"))
+console.dir(math.RGBAColor.resolve("rgb(0,255,0)"))
 console.dir(math.RGBAColor.resolve({red: 1,green: 0.64,blue: 0,alpha: 1}))

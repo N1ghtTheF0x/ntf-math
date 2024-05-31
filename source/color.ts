@@ -20,6 +20,11 @@ function _number_to_array(number: number)
     return [...new Uint8Array(new Uint32Array([number]).buffer)] as [number,number,number,number]
 }
 
+function _fix_integer(number: number)
+{
+    return number * 0xff | 0
+}
+
 export interface IRGB
 {
     red: number
@@ -75,7 +80,7 @@ export class RGBAColor implements IRBBA
                 const offset = hasAlpha ? 5 : 4
                 const parts = a.substring(offset,a.indexOf(")",offset)).split(",")
                 if(check_string_array(parts,hasAlpha ? 4 : 3))
-                    return this.resolve(parts.map((v) => parseFloat(v)))
+                    return this.resolve(parts.map((v) => parseInt(v) / 0xff))
             }
             const hex = _hex_to_array(a)
             if(hex)
@@ -114,7 +119,7 @@ export class RGBAColor implements IRBBA
     }
     public toString(withAlpha = false): AnyRGBString
     {
-        return withAlpha ? `rgba(${this.red},${this.green},${this.blue},${this.alpha})` : (this.alpha == 1 ? `rgb(${this.red},${this.green},${this.blue})` : this.toString(true))
+        return withAlpha ? `rgba(${_fix_integer(this.red)},${_fix_integer(this.green)},${_fix_integer(this.blue)},${_fix_integer(this.alpha)})` : (this.alpha == 1 ? `rgb(${_fix_integer(this.red)},${_fix_integer(this.green)},${_fix_integer(this.blue)})` : this.toString(true))
     }
     public toHSL(withAlpha = true)
     {
@@ -199,7 +204,7 @@ export class HSLColor implements IHSLA
                 const offset = hasAlpha ? 5 : 4
                 const parts = a.substring(offset,a.indexOf(")",offset)).split(",")
                 if(check_string_array(parts,hasAlpha ? 4 : 3))
-                    return this.resolve(parts.map((v) => parseFloat(v)))
+                    return this.resolve(parts.map((v) => parseInt(v) / 0xff))
             }
             const hex = _hex_to_array(a)
             if(hex)
@@ -238,7 +243,7 @@ export class HSLColor implements IHSLA
     }
     public toString(withAlpha = false): AnyHSLString
     {
-        return withAlpha ? `hsla(${this.hue},${this.saturation},${this.luminace},${this.alpha})` : (this.alpha == 1 ? `hsl(${this.hue},${this.saturation},${this.luminace})` : this.toString(true))
+        return withAlpha ? `hsla(${_fix_integer(this.hue)},${_fix_integer(this.saturation)},${_fix_integer(this.luminace)},${_fix_integer(this.alpha)})` : (this.alpha == 1 ? `hsl(${_fix_integer(this.hue)},${_fix_integer(this.saturation)},${_fix_integer(this.luminace)})` : this.toString(true))
     }
     public toRGB(withAlpha = true)
     {
@@ -272,4 +277,26 @@ export class HSLColor implements IHSLA
             withAlpha ? 1 - this.alpha : this.alpha
         )
     }
+}
+
+export type AnyColorArray = AnyRGBArray | AnyHSLArray
+export type AnyColorString = AnyRGBString | AnyHSLString
+export type IColor = IAnyRGB | IAnyHSL
+export type AnyColorLike = AnyColorArray | AnyColorString | IColor
+
+export function resolveColor(a: unknown): RGBAColor | HSLColor
+{
+    try
+    {
+        const rgba = RGBAColor.resolve(a)
+        return rgba
+    }
+    catch(e){}
+    try
+    {
+        const hsla = HSLColor.resolve(a)
+        return hsla
+    }
+    catch(e){}
+    throw new ResolveError("Color",a)
 }

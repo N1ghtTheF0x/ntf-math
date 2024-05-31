@@ -71,6 +71,17 @@ export class Vec3 implements IVec3
             clamp(a.z,b.z,c.z)
         )
     }
+    public static intersectPlane(planeP: Vec3Like,planeN: Vec3Like,lineStart: Vec3Like,lineEnd: Vec3Like,t: number)
+    {
+        planeN = this.resolve(planeN).normalize()
+        const plane_d = -this.resolve(planeN).dot(planeP)
+        const ad = this.resolve(lineStart).dot(planeN)
+        const bd = this.resolve(lineEnd).dot(planeN)
+        t = (-plane_d - ad) / (bd - ad)
+        const lineStartToEnd = this.resolve(lineEnd).subtract(lineStart)
+        const linetoIntersect = lineStartToEnd.multiply(t)
+        return Vec3.resolve(lineStart).add(linetoIntersect)
+    }
     public constructor(public x: number = 0,public y: number = 0,public z: number = 0,public w: number = 1)
     {
 

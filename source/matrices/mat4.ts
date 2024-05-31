@@ -141,6 +141,20 @@ export class Mat4 implements IMat4
             0,0,near * far * rangeInv * 2,0
         ])
     }
+    public static pointAt(position: Vec3Like,target: Vec3Like,up: Vec3Like)
+    {
+        const newForward = Vec3.resolve(target).subtract(position).normalize()
+        const a = newForward.multiply(Vec3.resolve(up).dot(newForward))
+        const newUp = Vec3.resolve(up).subtract(a).normalize()
+        const newRight = newUp.cross(newForward)
+        const pos = Vec3.resolve(position)
+        return new this([
+            newRight.x,newRight.y,newRight.z,0,
+            newUp.x,newUp.y,newUp.z,0,
+            newForward.x,newForward.y,newForward.z,0,
+            pos.x,pos.y,pos.z,1
+        ])
+    }
     public constructor(init: Mat4Array = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1])
     {
         this._raw = init
