@@ -15,9 +15,21 @@ function _hex_to_array(hex: HexLike)
     return [a,b,c,d] as const
 }
 
-function _number_to_array(number: number)
+function _number_to_rgb(number: number)
 {
-    return [...new Uint8Array(new Uint32Array([number]).buffer)] as [number,number,number,number]
+    const blue = number & 0xff
+    const green = (number & 0xff00) >>> 8
+    const red = (number & 0xff0000) >>> 16
+    return [red/0xff,green/0xff,blue/0xff] as const
+}
+
+function _number_to_rgba(number: number)
+{
+    const alpha = number & 0xff
+    const blue = (number & 0xff00) >>> 8
+    const green = (number & 0xff0000) >>> 16
+    const red = (number & 0xff000000) >>> 24
+    return [red/0xff,green/0xff,blue/0xff,alpha/0xff] as const
 }
 
 function _fix_integer(number: number)
@@ -71,7 +83,11 @@ export class RGBAColor implements IRBBA
         if(has_property(a,"red","number") && has_property(a,"green","number") && has_property(a,"blue","number"))
             return new this(a.red,a.green,a.blue,has_property(a,"alpha","number") ? a.alpha : undefined)
         if(check_number(a))
-            return this.resolve(_number_to_array(a))
+        {
+            const hex = a.toString(16)
+            const convert = hex.length <= 6 ? _number_to_rgb : _number_to_rgba
+            return this.resolve(convert(a))
+        }
         if(check_string(a))
         {
             if(a.startsWith("rgb"))
@@ -195,7 +211,11 @@ export class HSLColor implements IHSLA
         if(has_property(a,"hue","number") && has_property(a,"saturation","number") && has_property(a,"luminace","number"))
             return new this(a.hue,a.saturation,a.luminace,has_property(a,"alpha","number") ? a.alpha : undefined)
         if(check_number(a))
-            return this.resolve(_number_to_array(a))
+        {
+            const hex = a.toString(16)
+            const convert = hex.length <= 6 ? _number_to_rgb : _number_to_rgba
+            return this.resolve(convert(a))
+        }
         if(check_string(a))
         {
             if(a.startsWith("hsl"))
@@ -282,21 +302,29 @@ export class HSLColor implements IHSLA
 export type AnyColorArray = AnyRGBArray | AnyHSLArray
 export type AnyColorString = AnyRGBString | AnyHSLString
 export type IColor = IAnyRGB | IAnyHSL
-export type AnyColorLike = AnyColorArray | AnyColorString | IColor
+export type AnyColorLike = AnyColorArray | AnyColorString | IColor | HexLike | number
 
-export function resolveColor(a: unknown): RGBAColor | HSLColor
+export function resolveColor(a: unknown,preferHSL: boolean = false): RGBAColor | HSLColor
 {
+    const results: Array<RGBAColor | HSLColor | undefined> = []
     try
     {
         const rgba = RGBAColor.resolve(a)
-        return rgba
+        results.push(rgba)
     }
     catch(e){}
     try
     {
         const hsla = HSLColor.resolve(a)
-        return hsla
+        results.push(hsla)
     }
     catch(e){}
+    let offset = preferHSL ? 1 : 0
+    const firstItem = results[offset]
+    if(firstItem)
+        return firstItem
+    const secondItem = results[offset+1]
+    if(secondItem)
+        return secondItem
     throw new ResolveError("Color",a)
 }

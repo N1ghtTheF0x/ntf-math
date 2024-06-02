@@ -60,11 +60,6 @@ export function check_hex(obj: unknown): obj is HexLike
 {
     if(!check_string(obj))
         return false
-    let offset = 0
-    if(obj.startsWith("#") || obj.startsWith("$"))
-        offset = 1
-    if(obj.startsWith("0x"))
-        offset = 2
     const value = get_hex_part(obj).split("").map((char) => parseInt(char.toUpperCase(),16))
     return check_number_array(value)
 }
