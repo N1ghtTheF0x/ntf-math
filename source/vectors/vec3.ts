@@ -1,5 +1,5 @@
 import { ResolveError } from "../common/error"
-import { IVec2 } from "./vec2"
+import { IVec2, Vec2} from "./vec2"
 import { check_number_array, check_number, check_string, check_string_array, has_property } from "../common/types"
 import { clamp } from "../index"
 
@@ -16,10 +16,21 @@ export type Vec3Arguments = [Vec3Like] | [number,number,number]
 
 export class Vec3 implements IVec3
 {
-    public static resolve(a: unknown)
+    public x: number
+    public y: number
+    public z: number
+    public w: number
+    public static resolve(a: unknown): Vec3
+    {
+        const value = this.cast(a)
+        if(typeof value != "undefined")
+            return value
+        throw new ResolveError("Vec3",a)
+    }
+    public static cast(a: unknown): Vec3 | undefined
     {
         if(a == null || typeof a == "undefined")
-            throw new ResolveError("Vec3",a)
+            return undefined
         if(check_number_array(a,3) || check_number_array(a,4))
             return new this(a[0],a[1],a[2],check_number(a[3]) ? a[3] : undefined)
         if(has_property(a,"x","number") && has_property(a,"y","number") && has_property(a,"z","number"))
@@ -36,7 +47,7 @@ export class Vec3 implements IVec3
         }
         if(check_number(a))
             return new this(a,a,a)
-        throw new ResolveError("Vec3",a)
+        return undefined
     }
     public static resolveArgs(args: Vec3Arguments)
     {
@@ -46,15 +57,7 @@ export class Vec3 implements IVec3
     }
     public static is(a: unknown): a is Vec3Like
     {
-        try
-        {
-            this.resolve(a as Vec3Like)
-        }
-        catch(e)
-        {
-            return false
-        }
-        return true
+        return typeof this.cast(a) != "undefined"
     }
     public static fromPoints(a: Vec3Like,b: Vec3Like)
     {
@@ -82,9 +85,20 @@ export class Vec3 implements IVec3
         const linetoIntersect = lineStartToEnd.multiply(t)
         return Vec3.resolve(lineStart).add(linetoIntersect)
     }
-    public constructor(public x: number = 0,public y: number = 0,public z: number = 0,public w: number = 1)
+    public constructor(x: number = 0,y: number = 0,z: number = 0,w: number = 1)
     {
-
+        if(!check_number(x))
+            throw new TypeError("expected number for x")
+        if(!check_number(y))
+            throw new TypeError("expected number for y")
+        if(!check_number(z))
+            throw new TypeError("expected number for z")
+        if(!check_number(w))
+            throw new TypeError("expected number for w")
+        this.x = x
+        this.y = y
+        this.z = z
+        this.w = w
     }
     public toArray(w = false): Vec3Array
     {
@@ -100,9 +114,18 @@ export class Vec3 implements IVec3
     {
         return w ? `${this.x},${this.y},${this.z}` : `${this.x},${this.y},${this.z};${this.w}`
     }
+    public toVec2()
+    {
+        return new Vec2(this.x,this.y,this.w)
+    }
     public clone()
     {
         return new Vec3(this.x,this.y,this.z,this.w)
+    }
+    public equals(vec: Vec3Like)
+    {
+        const a = Vec3.resolve(vec)
+        return this.x == a.x && this.y == a.y && this.z == a.z
     }
     public setX(x: number)
     {

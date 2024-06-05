@@ -1,4 +1,5 @@
 import { sign_char } from "../common/sign"
+import { check_number } from "../common/types"
 import { Vec2, Vec2Like } from "../vectors/vec2"
 import { MathFunction } from "./function"
 
@@ -10,18 +11,32 @@ export type QuadFunctionStrings = QuadFunctionString[QuadFunctionType]
 
 export class QuadFunction extends MathFunction<[number]>
 {
+    public a: number
+    public b: number
+    public c: number
     public static get(a: number,b: number,c: number,x: number)
     {
         return new this(a,b,c).get(x)
     }
-    public constructor(public a: number,public b: number,public c: number)
+    public constructor(a: number,b: number,c: number)
     {
         super()
+        if(!check_number(a))
+            throw new TypeError("expected number for a")
         if(a == 0)
-            throw new Error("'a' cannot be 0")
+            throw new TypeError("a cannot be 0")
+        if(!check_number(b))
+            throw new TypeError("expected number for b")
+        if(!check_number(c))
+            throw new TypeError("expected number for c")
+        this.a = a
+        this.b = b
+        this.c = c
     }
     public get(x: number): number
     {
+        if(!check_number(x))
+            throw new TypeError("expected number for x")
         return this.a*x*x + this.b*x + this.c
     }
     public roots(): Array<Vec2>

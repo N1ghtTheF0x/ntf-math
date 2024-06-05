@@ -15,7 +15,7 @@ export type Predicate<T> = (a: unknown) => a is T
 
 export function check_number(obj: unknown): obj is number
 {
-    return obj != null && typeof obj == "number" && !isNaN(obj)
+    return obj != null && typeof obj == "number" && !isNaN(obj) && isFinite(obj)
 }
 
 export function check_hex_digit(obj: unknown): obj is HexDigit

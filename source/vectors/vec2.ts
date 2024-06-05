@@ -1,6 +1,7 @@
 import { ResolveError } from "../common/error"
 import { check_number_array, check_number, check_string, check_string_array, has_property } from "../common/types"
 import { Square } from "../geometry/square"
+import { Vec3 } from "./vec3"
 import { clamp } from "../index"
 
 export interface IVec2
@@ -12,15 +13,25 @@ export interface IVec2
 
 export type Vec2Array = [number,number] | [number,number,number]
 export type Vec2String = `${number},${number}` | `${number},${number};${number}`
-export type Vec2Like = IVec2 | Vec2Array | Vec2String  | number
+export type Vec2Like = IVec2 | Vec2Array | Vec2String | number
 export type Vec2Arguments = [Vec2Like] | [number,number]
 
 export class Vec2 implements IVec2
 {
-    public static resolve(a: unknown)
+    public x: number
+    public y: number
+    public w: number
+    public static resolve(a: unknown): Vec2
+    {
+        const value = this.cast(a)
+        if(typeof value != "undefined")
+            return value
+        throw new ResolveError("Vec2",a)
+    }
+    public static cast(a: unknown): Vec2 | undefined
     {
         if(a == null || typeof a == "undefined")
-            throw new ResolveError("Vec2",a)
+            return undefined
         if(check_number_array(a,2) || check_number_array(a,3))
             return new this(a[0],a[1],check_number(a[2]) ? a[2] : undefined)
         if(has_property(a,"x","number") && has_property(a,"y","number"))
@@ -37,7 +48,7 @@ export class Vec2 implements IVec2
         }
         if(check_number(a))
             return new this(a,a)
-        throw new ResolveError("Vec2",a)
+        return undefined
     }
     public static resolveArgs(args: Vec2Arguments)
     {
@@ -47,15 +58,7 @@ export class Vec2 implements IVec2
     }
     public static is(a: unknown): a is Vec2Like
     {
-        try
-        {
-            this.resolve(a)
-        }
-        catch(e)
-        {
-            return false
-        }
-        return true
+        return typeof this.cast(a) != "undefined"
     }
     public static fromPoints(a: Vec2Like,b: Vec2Like)
     {
@@ -71,9 +74,17 @@ export class Vec2 implements IVec2
             clamp(a.y,b.y,c.y)
         )
     }
-    public constructor(public x: number = 0,public y: number = 0,public w = 1)
+    public constructor(x: number = 0,y: number = 0,w = 1)
     {
-
+        if(!check_number(x))
+            throw new TypeError("expected number for x")
+        if(!check_number(y))
+            throw new TypeError("expected number for y")
+        if(!check_number(w))
+            throw new TypeError("expected number for w")
+        this.x = x
+        this.y = y
+        this.w = w
     }
     public toArray(w = false): Vec2Array
     {
@@ -93,9 +104,18 @@ export class Vec2 implements IVec2
     {
         return new Square(this.x,this.y)
     }
+    public toVec3(z?: number)
+    {
+        return new Vec3(this.x,this.y,z,this.w)
+    }
     public clone()
     {
         return new Vec2(this.x,this.y,this.w)
+    }
+    public equals(vec: Vec2Like)
+    {
+        const a = Vec2.resolve(vec)
+        return this.x == a.x && this.y == a.y
     }
     public setX(x: number)
     {

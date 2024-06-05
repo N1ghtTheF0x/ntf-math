@@ -1,6 +1,7 @@
 import { ResolveError } from "../common/error"
 import { check_array, check_number, check_number_array, check_string, check_string_array, has_property } from "../common/types"
 import { Vec2Like, Vec2, Vec2Arguments } from "../vectors/vec2"
+import { Mat4 } from "./mat4"
 
 export interface IMat3
 {
@@ -44,8 +45,15 @@ export class Mat3 implements IMat3
     public set m22(val){this._raw[8] = val}
     public static resolve(a: unknown): Mat3
     {
+        const value = this.cast(a)
+        if(typeof value != "undefined")
+            return value
+        throw new ResolveError("Mat3",a)
+    }
+    public static cast(a: unknown): Mat3 | undefined
+    {
         if(a == null || typeof a == "undefined")
-            throw new ResolveError("Mat3",a)
+            return undefined
         if(check_number_array(a,9))
         {
             return new this(a as Mat3Array)
@@ -64,7 +72,7 @@ export class Mat3 implements IMat3
         {
             const parts = a.split(",")
             if(check_string_array(parts,9))
-                return this.resolve(parts.map((i) => parseFloat(i)))
+                return this.cast(parts.map((i) => parseFloat(i)))
         }
         if(
             has_property(a,"m00","number") && has_property(a,"m01","number") && has_property(a,"m02","number") &&
@@ -80,19 +88,11 @@ export class Mat3 implements IMat3
         {
             return new this([a,a,a,a,a,a,a,a,a])
         }
-        throw new ResolveError("Mat3",a)
+        return undefined
     }
     public static is(a: unknown): a is Mat3Like
     {
-        try
-        {
-            this.resolve(a)
-        }
-        catch(e)
-        {
-            return false
-        }
-        return true
+        return typeof this.cast(a) != "undefined"
     }
     public static projection(width: number,height: number)
     {
@@ -104,6 +104,8 @@ export class Mat3 implements IMat3
     }
     public constructor(init: Mat3Array = [1,0,0,0,1,0,0,0,1])
     {
+        if(!check_number_array(init,9))
+            throw new TypeError("expected a number array with 9 elements")
         this._raw = init
     }
     public toArray(): Mat3Array
@@ -141,6 +143,14 @@ export class Mat3 implements IMat3
             this.m10,this.m11,this.m12,
             this.m20,this.m21,this.m22
         ])
+    }
+    public equals(mat: Mat3Like)
+    {
+        const m = Mat3.resolve(mat)
+        for(let index = 0;index < this._raw.length;index++)
+            if(this._raw[index] != m._raw[index])
+                return false
+        return true
     }
     public add(mat: Mat3Like)
     {
@@ -226,6 +236,15 @@ export class Mat3 implements IMat3
             (this.m11 * this.m22 - this.m21 * this.m12) * det,(this.m02 * this.m21 - this.m01 * this.m22) * det,(this.m01 * this.m12 - this.m02 * this.m11) * det,
             (this.m12 * this.m20 - this.m10 * this.m22) * det,(this.m00 * this.m22 - this.m02 * this.m20) * det,(this.m10 * this.m02 - this.m00 * this.m12) * det,
             (this.m10 * this.m21 - this.m20 * this.m11) * det,(this.m20 * this.m01 - this.m00 * this.m21) * det,(this.m00 * this.m11 - this.m10 * this.m01) * det
+        ])
+    }
+    public toMat4(): Mat4
+    {
+        return new Mat4([
+            this.m00,this.m01,0,this.m02,
+            this.m10,this.m11,0,this.m12,
+            0,0,1,0,
+            this.m20,this.m20,0,this.m22,
         ])
     }
 }

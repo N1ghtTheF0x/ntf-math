@@ -1,5 +1,5 @@
 import { ResolveError } from "../common/error"
-import { check_number_array, check_string, has_property } from "../common/types"
+import { check_number, check_number_array, check_string, has_property } from "../common/types"
 import { IVec2, Vec2, Vec2Array, Vec2Like, Vec2String } from "../vectors/vec2"
 import { IGeometryObject } from "./object"
 
@@ -14,6 +14,7 @@ export type CircleLike = ICircle | CircleArray | CircleString
 
 export class Circle implements ICircle, IGeometryObject
 {
+    public radius: number
     public get perimeter(){return this.radius * Math.PI * 2}
     public get area(){return Math.PI * Math.pow(this.radius,2)}
     public position: Vec2
@@ -25,8 +26,15 @@ export class Circle implements ICircle, IGeometryObject
     public set w(val){this.position.w = val}
     public static resolve(a: unknown): Circle
     {
+        const value = this.cast(a)
+        if(typeof value != "undefined")
+            return value
+        throw new ResolveError("Circle",a)
+    }
+    public static cast(a: unknown): Circle | undefined
+    {
         if(a == null || typeof a == "undefined")
-            throw new ResolveError("Circle",a)
+            return undefined
         if(check_number_array(a,3))
             return new this([a[0],a[1]],a[2])
         if(check_number_array(a,4))
@@ -40,28 +48,49 @@ export class Circle implements ICircle, IGeometryObject
         if(check_string(a))
         {
             const [spos,sradius] = a.split("|")
-            const pos = Vec2.resolve(spos)
+            const pos = Vec2.cast(spos)
+            if(typeof pos == "undefined")
+                return undefined
             const radius = parseFloat(sradius)
             if(!isNaN(radius))
                 return new this(pos,radius)
         }
-        throw new ResolveError("Circle",a)
+        return undefined
     }
     public static is(a: unknown): a is CircleLike
     {
-        try
-        {
-            this.resolve(a)
-        }
-        catch(e)
-        {
-            return false
-        }
-        return true
+        return typeof this.cast(a) != "undefined"
     }
-    public constructor(position: Vec2Like,public radius: number)
+    public constructor(position: Vec2Like,radius: number)
     {
         this.position = Vec2.resolve(position)
+        if(!check_number(radius))
+            throw new TypeError("expected number for radius")
+        this.radius = radius
+    }
+    public toArray(): CircleArray
+    {
+        return [...this.position.toArray(),this.radius]
+    }
+    public toJSON(): ICircle
+    {
+        return {
+            ...this.position.toJSON(),
+            radius: this.radius
+        }
+    }
+    public toString(): CircleString
+    {
+        return `${this.position.toString()}|${this.radius}`
+    }
+    public clone()
+    {
+        return new Circle(this.position.clone(),this.radius)
+    }
+    public equals(circle: CircleLike)
+    {
+        const c = Circle.resolve(circle)
+        return c.position.equals(c.position) && this.radius == c.radius
     }
     public inside(a: CircleLike)
     {

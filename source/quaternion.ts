@@ -1,5 +1,5 @@
 import { ResolveError } from "./common/error"
-import { check_number_array, check_string, check_string_array, has_property } from "./common/types"
+import { check_number, check_number_array, check_string, check_string_array, has_property } from "./common/types"
 import { EPSILON, Mat3, Mat4, log_hypot } from "./index"
 import { Vec3, Vec3Arguments, Vec3Like } from "./vectors/vec3"
 
@@ -17,22 +17,25 @@ export type QuaternionLike = IQuaternion | QuaternionArray | QuaternionString
 
 export class Quaternion
 {
-    public static is(obj: unknown): obj is IQuaternion
+    public w: number
+    public x: number
+    public y: number
+    public z: number
+    public static is(a: unknown): a is IQuaternion
     {
-        try
-        {
-            this.resolve(obj)
-            return true
-        }
-        catch(e)
-        {
-            return false
-        }
+        return typeof this.cast(a) != "undefined"
     }
     public static resolve(a: unknown): Quaternion
     {
+        const value = this.cast(a)
+        if(typeof value != "undefined")
+            return value
+        throw new ResolveError("Quaternion",a)
+    }
+    public static cast(a: unknown): Quaternion | undefined
+    {
         if(a == null || typeof a == "undefined")
-            throw new ResolveError("Quaternion",a)
+            return undefined
         if(check_number_array(a,4))
             return new this(a[0],a[1],a[2],a[3])
         if(has_property(a,"w","number") && has_property(a,"x","number") && has_property(a,"y","number") && has_property(a,"z","number"))
@@ -44,7 +47,7 @@ export class Quaternion
             {
                 const [sw,sxi,syj,szk] = parts
                 if(sxi.endsWith("i") && syj.endsWith("j") && szk.endsWith("k"))
-                    return this.resolve([
+                    return this.cast([
                         parseFloat(sw),
                         parseFloat(sxi.substring(0,sxi.length-1)),
                         parseFloat(syj.substring(0,syj.length-1)),
@@ -52,7 +55,7 @@ export class Quaternion
                     ])
             }
         }
-        throw new ResolveError("Quaternion",a)
+        return undefined
     }
     public static fromAxisAngle(axis: Vec3Like,angle: number)
     {
@@ -78,9 +81,20 @@ export class Quaternion
             sx * sy * cz + sz * cx * cy 
         )
     }
-    public constructor(public w: number = 0,public x: number = 0,public y: number = 0,public z: number = 0)
+    public constructor(w: number = 0,x: number = 0,y: number = 0,z: number = 0)
     {
-
+        if(!check_number(w))
+            throw new TypeError("expected number for w")
+        if(!check_number(x))
+            throw new TypeError("expected number for x")
+        if(!check_number(y))
+            throw new TypeError("expected number for x")
+        if(!check_number(z))
+            throw new TypeError("expected number for w")
+        this.w = w
+        this.x = x
+        this.y = y
+        this.z = z
     }
     public toArray(): QuaternionArray
     {

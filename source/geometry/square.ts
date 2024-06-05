@@ -16,13 +16,22 @@ export type SquareArguments = [SquareLike] | [number,number]
 
 export class Square implements ISquare, IGeometryObject
 {
+    public width: number
+    public height: number
     public get aspectRatio(){return this.height/this.width}
     public get area(){return this.width*this.height}
     public get perimeter(){return this.width+this.width+this.height+this.height}
     public static resolve(a: unknown): Square
     {
+        const value = this.cast(a)
+        if(typeof value != "undefined")
+            return value
+        throw new ResolveError("Square",a)
+    }
+    public static cast(a: unknown): Square | undefined
+    {
         if(a == null || typeof a == "undefined")
-            throw new ResolveError("Square",a)
+            return undefined
         if(check_number_array(a,2))
             return new this(a[0],a[1])
         if(has_property(a,"width","number") && has_property(a,"height","number"))
@@ -31,32 +40,24 @@ export class Square implements ISquare, IGeometryObject
         {
             const parts = a.split("x").map((v) => parseFloat(v))
             if(check_number_array(parts,2))
-                return this.resolve(parts)
+                return this.cast(parts)
         }
         if(check_number(a))
             return new this(a,a)
-        throw new ResolveError("Square",a)
-    }
-    public static fromVector(a: Vec2Like)
-    {
-        const vec = Vec2.resolve(a)
-        return new this(vec.x,vec.y)
+        return undefined
     }
     public static is(a: unknown): a is SquareLike
     {
-        try
-        {
-            this.resolve(a)
-        }
-        catch(e)
-        {
-            return false
-        }
-        return true
+        return typeof this.cast(a) != "undefined"
     }
-    public constructor(public width: number,public height: number)
+    public constructor(width: number,height: number)
     {
-
+        if(!check_number(width))
+            throw new TypeError("expected number for width")
+        if(!check_number(height))
+            throw new TypeError("expected number for height")
+        this.width = width
+        this.height = height
     }
     public toArray(): SquareArray
     {
@@ -76,6 +77,11 @@ export class Square implements ISquare, IGeometryObject
     public clone()
     {
         return new Square(this.width,this.height)
+    }
+    public equals(square: SquareLike)
+    {
+        const s = Square.resolve(square)
+        return this.width == s.width && this.height == s.height
     }
     public toVector()
     {

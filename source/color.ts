@@ -76,8 +76,15 @@ export class RGBAColor implements IRBBA
     public set alpha(val){this._alpha = clamp(val,0,1)}
     public static resolve(a: unknown): RGBAColor
     {
+        const value = this.cast(a)
+        if(typeof value != "undefined")
+            return value
+        throw new ResolveError("RGBAColor",a)
+    }
+    public static cast(a: unknown): RGBAColor | undefined
+    {
         if(a == null || typeof a == "undefined")
-            throw new ResolveError("RGBAColor",a)
+            return undefined
         if(check_number_array(a,3) || check_number_array(a,4))
             return new this(a[0],a[1],a[2],a[3])
         if(has_property(a,"red","number") && has_property(a,"green","number") && has_property(a,"blue","number"))
@@ -86,7 +93,7 @@ export class RGBAColor implements IRBBA
         {
             const hex = a.toString(16)
             const convert = hex.length <= 6 ? _number_to_rgb : _number_to_rgba
-            return this.resolve(convert(a))
+            return this.cast(convert(a))
         }
         if(check_string(a))
         {
@@ -96,25 +103,15 @@ export class RGBAColor implements IRBBA
                 const offset = hasAlpha ? 5 : 4
                 const parts = a.substring(offset,a.indexOf(")",offset)).split(",")
                 if(check_string_array(parts,hasAlpha ? 4 : 3))
-                    return this.resolve(parts.map((v) => parseInt(v) / 0xff))
+                    return this.cast(parts.map((v) => parseInt(v) / 0xff))
             }
-            const hex = _hex_to_array(a)
-            if(hex)
-                return this.resolve(hex)
+            return this.cast(_hex_to_array(a))
         }
-        throw new ResolveError("RGBAColor",a)
+        return undefined
     }
     public static is(a: unknown): a is AnyRGBLike
     {
-        try
-        {
-            this.resolve(a)
-        }
-        catch(e)
-        {
-            return false
-        }
-        return false
+        return typeof this.cast(a) != "undefined"
     }
     public constructor(red: number,green: number,blue: number,alpha: number = 1)
     {
@@ -201,11 +198,18 @@ export class HSLColor implements IHSLA
     public set luminace(val){this._luminace = clamp(val,0,1)}
     private _alpha: number
     public get alpha(){return this._alpha}
-    public set alpha(val){this._alpha = val & 0xff}
+    public set alpha(val){this._alpha = clamp(val,0,1)}
     public static resolve(a: unknown): HSLColor
     {
+        const value = this.cast(a)
+        if(typeof value != "undefined")
+            return value
+        throw new ResolveError("HSLColor",a)
+    }
+    public static cast(a: unknown): HSLColor | undefined
+    {
         if(a == null || typeof a == "undefined")
-            throw new ResolveError("HSLColor",a)
+            return undefined
         if(check_number_array(a,3) || check_number_array(a,4))
             return new this(a[0],a[1],a[2],a[3])
         if(has_property(a,"hue","number") && has_property(a,"saturation","number") && has_property(a,"luminace","number"))
@@ -214,7 +218,7 @@ export class HSLColor implements IHSLA
         {
             const hex = a.toString(16)
             const convert = hex.length <= 6 ? _number_to_rgb : _number_to_rgba
-            return this.resolve(convert(a))
+            return this.cast(convert(a))
         }
         if(check_string(a))
         {
@@ -224,32 +228,30 @@ export class HSLColor implements IHSLA
                 const offset = hasAlpha ? 5 : 4
                 const parts = a.substring(offset,a.indexOf(")",offset)).split(",")
                 if(check_string_array(parts,hasAlpha ? 4 : 3))
-                    return this.resolve(parts.map((v) => parseInt(v) / 0xff))
+                    return this.cast(parts.map((v) => parseInt(v) / 0xff))
             }
-            const hex = _hex_to_array(a)
-            if(hex)
-                return this.resolve(hex)
+            return this.cast(_hex_to_array(a))
         }
-        throw new ResolveError("HSLColor",a)
+        return undefined
     }
     public static is(a: unknown)
     {
-        try
-        {
-            this.resolve(a)
-        }
-        catch(e)
-        {
-            return false
-        }
-        return true
+        return typeof this.cast(a) != "undefined"
     }
-    public constructor(hue: number,saturation: number,luminace: number,alpha: number = 0xff)
+    public constructor(hue: number,saturation: number,luminace: number,alpha: number = 1)
     {
+        if(!check_number(hue))
+            throw new TypeError("expected number for hue")
+        if(!check_number(saturation))
+            throw new TypeError("expected number for saturation")
+        if(!check_number(luminace))
+            throw new TypeError("expected number for luminace")
+        if(!check_number(alpha))
+            throw new TypeError("expected number for alpha")
         this._hue = clamp(hue,0,1)
         this._saturation = clamp(saturation,0,1)
         this._luminace = clamp(luminace,0,1)
-        this._alpha = alpha & 0xff
+        this._alpha = clamp(alpha,0,1)
     }
     public toArray(withAlpha = false): AnyHSLArray
     {
@@ -306,6 +308,14 @@ export type AnyColorLike = AnyColorArray | AnyColorString | IColor | HexLike | n
 
 export function resolveColor(a: unknown,preferHSL: boolean = false): RGBAColor | HSLColor
 {
+    const value = castColor(a,preferHSL)
+    if(typeof value != "undefined")
+        return value
+    throw new ResolveError("Color",a)
+}
+
+export function castColor(a: unknown,preferHSL: boolean = false): RGBAColor | HSLColor | undefined
+{
     const results: Array<RGBAColor | HSLColor | undefined> = []
     try
     {
@@ -326,5 +336,5 @@ export function resolveColor(a: unknown,preferHSL: boolean = false): RGBAColor |
     const secondItem = results[offset+1]
     if(secondItem)
         return secondItem
-    throw new ResolveError("Color",a)
+    return undefined
 }

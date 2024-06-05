@@ -1,4 +1,5 @@
 import { sign_char } from "../common/sign"
+import { check_number } from "../common/types"
 import { Vec2Like, Vec2 } from "../vectors/vec2"
 import { MathFunction } from "./function"
 
@@ -6,6 +7,8 @@ export type LinearFunctionString = `f(x) = ${number} * x ${"+" | "-"} ${number}`
 
 export class LinearFunction extends MathFunction<[number]>
 {
+    public m: number
+    public b: number
     public static get(m: number,b: number,x: number)
     {
         return new this(m,b).get(x)
@@ -18,12 +21,20 @@ export class LinearFunction extends MathFunction<[number]>
         const h = -m*veca.x+veca.y
         return new this(m,h)
     }
-    public constructor(public m: number,public b: number)
+    public constructor(m: number,b: number)
     {
         super()
+        if(!check_number(m))
+            throw new TypeError("expected number for m")
+        if(!check_number(b))
+            throw new TypeError("expected number for b")
+        this.m = m
+        this.b = b
     }
     public get(x: number): number
     {
+        if(!check_number(x))
+            throw new TypeError("expected number for x")
         return this.m
     }
     public roots(): Array<Vec2>

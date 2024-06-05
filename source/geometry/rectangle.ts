@@ -1,5 +1,5 @@
 import { ResolveError } from "../common/error"
-import { check_number_array, check_string, has_property } from "../common/types"
+import { check_number, check_number_array, check_string, has_property } from "../common/types"
 import { IVec2, Vec2, Vec2Array, Vec2Like, Vec2String } from "../vectors/vec2"
 import { BoundingBox } from "./bbox"
 import { ISquare, Square, SquareArray, SquareLike, SquareString } from "./square"
@@ -29,8 +29,15 @@ export class Rectangle implements IRectangle
     public set height(val){this.size.height = val}
     public static resolve(a: unknown): Rectangle
     {
+        const value = this.cast(a)
+        if(typeof value != "undefined")
+            return value
+        throw new ResolveError("Rectangle",a)
+    }
+    public static cast(a: unknown): Rectangle | undefined
+    {
         if(a == null || typeof a == "undefined")
-            throw new ResolveError("Rectangle",a)
+            return undefined
         if(check_number_array(a,4))
             return new this(a[0],a[1],a[2],a[3])
         if(check_number_array(a,5))
@@ -42,8 +49,10 @@ export class Rectangle implements IRectangle
         if(check_string(a))
         {
             const [spos,ssize] = a.split("|")
-            const pos = Vec2.resolve(spos)
-            const size = Square.resolve(ssize)
+            const pos = Vec2.cast(spos)
+            const size = Square.cast(ssize)
+            if(typeof pos == "undefined" || typeof size == "undefined")
+                return undefined
             const rect = new this(pos.x,pos.y,size.width,size.height)
             rect.w = pos.w
             return rect
@@ -55,19 +64,11 @@ export class Rectangle implements IRectangle
                 rect.w = a.w
             return rect
         }
-        throw new ResolveError("Rectangle",a)
+        return undefined
     }
     public static is(a: unknown): a is RectangleLike
     {
-        try
-        {
-            this.resolve(a)
-        }
-        catch(e)
-        {
-            return false
-        }
-        return true
+        return typeof this.cast(a) != "undefined"
     }
     public constructor(pos: Vec2Like,size: SquareLike)
     public constructor(x: number,y: number,width: number,height: number)
@@ -76,10 +77,17 @@ export class Rectangle implements IRectangle
         const vec = Vec2.is(a) ? Vec2.resolve(a) : undefined
         const size = Square.is(b) ? Square.resolve(b) : undefined
         const x = typeof a == "number" ? a : vec?.x
+        if(!check_number(x))
+            throw new TypeError("expected number for x position")
         const y = typeof b == "number" ? b : vec?.y
+        if(!check_number(y))
+            throw new TypeError("expected number for y position")
         const width = typeof c == "number" ? c : size?.width
+        if(!check_number(width))
+            throw new TypeError("expected number for width")
         const height = typeof d == "number" ? d : size?.height
-        if(!x || !y || !width || !height) throw new TypeError
+        if(!check_number(height))
+            throw new TypeError("expected number for height")
         this.position = new Vec2(x,y)
         this.size = new Square(width,height)
     }
@@ -98,5 +106,14 @@ export class Rectangle implements IRectangle
     public toBoundingBox()
     {
         return new BoundingBox(this.x,this.x + this.width,this.y,this.y + this.height)
+    }
+    public clone()
+    {
+        return new Rectangle(this.position.clone(),this.size.clone())
+    }
+    public equals(rectangle: RectangleLike)
+    {
+        const rect = Rectangle.resolve(rectangle)
+        return this.position.equals(rect.position) && this.size.equals(rect.size)
     }
 }

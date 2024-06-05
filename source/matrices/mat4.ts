@@ -1,6 +1,7 @@
 import { ResolveError } from "../common/error"
 import { Vec3Like, Vec3, Vec3Arguments } from "../vectors/vec3"
 import { check_number_array, check_number, check_string, check_string_array, has_property, check_array } from "../common/types"
+import { Mat3 } from "./mat3"
 
 export interface IMat4
 {
@@ -66,8 +67,15 @@ export class Mat4 implements IMat4
     public set m33(val){this._raw[15] = val}
     public static resolve(a: unknown): Mat4
     {
+        const value = this.cast(a)
+        if(typeof value != "undefined")
+            return value
+        throw new ResolveError("Mat4",a)
+    }
+    public static cast(a: unknown): Mat4 | undefined
+    {
         if(a == null || typeof a == "undefined")
-            throw new ResolveError("Mat4",a)
+            return undefined
         if(check_number_array(a,16))
         {
             return new this(a as Mat4Array)
@@ -87,7 +95,7 @@ export class Mat4 implements IMat4
         {
             const parts = a.split(",")
             if(check_string_array(parts,16))
-                return this.resolve(parts.map((i) => parseFloat(i)))
+                return this.cast(parts.map((i) => parseFloat(i)))
         }
         if(
             has_property(a,"m00","number") && has_property(a,"m01","number") && has_property(a,"m02","number") && has_property(a,"m03","number") &&
@@ -105,19 +113,11 @@ export class Mat4 implements IMat4
         {
             return new this([a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a])
         }
-        throw new ResolveError("Mat4",a)
+        return undefined
     }
     public static is(a: unknown): a is Mat4Like
     {
-        try
-        {
-            this.resolve(a as Mat4Like)
-        }
-        catch(e)
-        {
-            return false
-        }
-        return true
+        return typeof this.cast(a) != "undefined"
     }
     public static orthographic(left: number,right: number,bottom: number,top: number,near: number,far: number)
     {
@@ -157,6 +157,8 @@ export class Mat4 implements IMat4
     }
     public constructor(init: Mat4Array = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1])
     {
+        if(!check_number_array(init,16))
+            throw new TypeError("expected a number array with 16 elements")
         this._raw = init
     }
     public toArray(): Mat4Array
@@ -198,6 +200,14 @@ export class Mat4 implements IMat4
             this.m20,this.m21,this.m22,this.m23,
             this.m30,this.m31,this.m32,this.m33
         ])
+    }
+    public equals(mat: Mat4Like)
+    {
+        const m = Mat4.resolve(mat)
+        for(let index = 0;index < this._raw.length;index++)
+            if(this._raw[index] != m._raw[index])
+                return false
+        return true
     }
     public add(mat: Mat4Like)
     {
@@ -343,6 +353,14 @@ export class Mat4 implements IMat4
             -(this.m30*this.m01+this.m31*this.m11+this.m32*this.m21),
             -(this.m30*this.m02+this.m31*this.m12+this.m32*this.m22),
             1
+        ])
+    }
+    public toMat3(): Mat3
+    {
+        return new Mat3([
+            this.m00,this.m01,this.m03,
+            this.m10,this.m11,this.m13,
+            this.m30,this.m31,this.m33
         ])
     }
 }
