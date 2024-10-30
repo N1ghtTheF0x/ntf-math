@@ -241,10 +241,10 @@ export class Mat3 implements IMat3
     public toMat4(): Mat4
     {
         return new Mat4([
-            this.m00,this.m01,0,this.m02,
-            this.m10,this.m11,0,this.m12,
-            0,0,1,0,
-            this.m20,this.m20,0,this.m22,
+            this.m00,this.m01,this.m02,0,
+            this.m10,this.m11,this.m12,0,
+            this.m20,this.m20,this.m22,0,
+            0,0,0,1
         ])
     }
 }
