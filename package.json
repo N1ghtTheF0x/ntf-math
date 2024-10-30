@@ -1,6 +1,6 @@
 {
   "name": "@ntf/math",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Another math library",
   "files": ["dist"],
   "main": "./dist/cjs/index.js",
