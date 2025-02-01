@@ -1,7 +1,7 @@
 import { ResolveError } from "../common/error"
 import { check_array, check_number, check_number_array, check_string, check_string_array, has_property } from "../common/types"
 import { Vec2Like, Vec2, Vec2Arguments } from "../vectors/vec2"
-import { Mat4 } from "./mat4"
+import { Mat4Like } from "./mat4"
 
 export interface IMat3
 {
@@ -238,13 +238,13 @@ export class Mat3 implements IMat3
             (this.m10 * this.m21 - this.m20 * this.m11) * det,(this.m20 * this.m01 - this.m00 * this.m21) * det,(this.m00 * this.m11 - this.m10 * this.m01) * det
         ])
     }
-    public toMat4(): Mat4
+    public toMat4(): Mat4Like
     {
-        return new Mat4([
+        return [
             this.m00,this.m01,this.m02,0,
             this.m10,this.m11,this.m12,0,
             this.m20,this.m20,this.m22,0,
             0,0,0,1
-        ])
+        ]
     }
 }

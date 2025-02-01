@@ -1,9 +1,10 @@
 import { ResolveError } from "../common/error"
+import { IToString } from "../common/string"
 import { check_number, check_number_array, check_string, check_string_array, has_property } from "../common/types"
 import { Vec2, Vec2Like } from "../vectors/vec2"
 import { Circle, CircleLike, ICircle } from "./circle"
 import { Rectangle } from "./rectangle"
-import { ISquare, Square } from "./square"
+import { ISize, Size } from "./size"
 
 export interface IBoundingBox
 {
@@ -17,7 +18,7 @@ export type BoundingBoxArray = [number,number,number,number]
 export type BoundingBoxString = `${number},${number},${number},${number}`
 export type BoundingBoxLike = IBoundingBox | BoundingBoxArray | BoundingBoxString
 
-export class BoundingBox implements IBoundingBox, ISquare
+export class BoundingBox implements IBoundingBox, ISize, IToString
 {
     public left: number
     public right: number
@@ -95,7 +96,7 @@ export class BoundingBox implements IBoundingBox, ISquare
     }
     public toSquare()
     {
-        return new Square(this.width,this.height)
+        return new Size(this.width,this.height)
     }
     public toRectangle()
     {

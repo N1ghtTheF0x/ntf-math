@@ -1,18 +1,24 @@
 {
   "name": "@ntf/math",
-  "version": "1.2.1",
+  "version": "1.3.0",
   "description": "Another math library",
   "files": ["dist"],
-  "main": "./dist/cjs/index.js",
-  "module": "./dist/esm/index.js",
-  "types": "./dist/types/index.d.ts",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.cts",
+  "exports": {
+    "require": {
+      "types": "./dist/index.d.cts",
+      "default": "./dist/index.cjs"
+    },
+    "import": {
+      "types": "./dist/index.d.mts",
+      "default": "./dist/index.mjs"
+    }
+  },
   "scripts": {
-    "test": "ts-node --project tsconfig.test.json test.ts",
-    "build:cjs": "tsc --build tsconfig.cjs.json",
-    "build:esm": "tsc --build tsconfig.esm.json",
-    "build": "npm run build:cjs && npm run build:esm",
-    "fix-esm-imports": "node fix-esm-imports.mjs dist/esm",
-    "postbuild:esm": "npm run fix-esm-imports",
+    "test": "tsx --project tsconfig.test.json test.ts",
+    "build": "pkgroll --src source",
     "prepublishOnly": "npm run build"
   },
   "repository": {
@@ -30,7 +36,8 @@
   "homepage": "https://github.com/N1ghtTheF0x/ntf-math#readme",
   "devDependencies": {
     "typescript": "latest",
-    "ts-node": "latest",
-    "express": "latest"
+    "tsx": "latest",
+    "express": "latest",
+    "pkgroll": "latest"
   }
 }

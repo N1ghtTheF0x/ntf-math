@@ -1,6 +1,7 @@
 {
     "extends": "./tsconfig.json",
     "files": ["test.ts"],
+    "include": ["dist"],
     "compilerOptions": {
         "module": "CommonJS",
         "moduleResolution": "Node"

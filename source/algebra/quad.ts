@@ -1,6 +1,6 @@
 import { sign_char } from "../common/sign"
 import { check_number } from "../common/types"
-import { Vec2, Vec2Like } from "../vectors/vec2"
+import { Vec2 } from "../vectors/vec2"
 import { MathFunction } from "./function"
 
 export type QuadFunctionType = "standard"

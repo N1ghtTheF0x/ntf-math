@@ -1,3 +1,4 @@
+import { IToString } from "../common/string"
 import { Vec2 } from "../vectors/vec2"
 import { Vec3 } from "../vectors/vec3"
 import { IGeometryObject } from "./object"
@@ -17,7 +18,7 @@ export interface ITriangle extends IGeometryObject
     readonly base: number
 }
 
-export abstract class ATriangle<P extends Vec2 | Vec3> implements ITriangle
+export abstract class ATriangle<P extends Vec2 | Vec3> implements ITriangle, IToString
 {
     public abstract get a(): number
     public abstract get b(): number
@@ -60,7 +61,7 @@ export abstract class ATriangle<P extends Vec2 | Vec3> implements ITriangle
     }
 }
 
-export class Triangle2D extends ATriangle<Vec2>
+export class Triangle2D extends ATriangle<Vec2> implements IToString
 {
     public get a()
     {

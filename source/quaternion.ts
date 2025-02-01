@@ -1,6 +1,8 @@
 import { ResolveError } from "./common/error"
 import { check_number, check_number_array, check_string, check_string_array, has_property } from "./common/types"
-import { EPSILON, Mat3, Mat4, log_hypot } from "./index"
+import { Mat3 } from "./matrices/mat3"
+import { Mat4 } from "./matrices/mat4"
+import { EPSILON, log_hypot } from "./utils"
 import { Vec3, Vec3Arguments, Vec3Like } from "./vectors/vec3"
 
 export interface IQuaternion

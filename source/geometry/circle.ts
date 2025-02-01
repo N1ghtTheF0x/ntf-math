@@ -1,4 +1,5 @@
 import { ResolveError } from "../common/error"
+import { IToString } from "../common/string"
 import { check_number, check_number_array, check_string, has_property } from "../common/types"
 import { IVec2, Vec2, Vec2Array, Vec2Like, Vec2String } from "../vectors/vec2"
 import { IGeometryObject } from "./object"
@@ -12,7 +13,7 @@ export type CircleArray = [...Vec2Array,number]
 export type CircleString = `${Vec2String}|${number}`
 export type CircleLike = ICircle | CircleArray | CircleString
 
-export class Circle implements ICircle, IGeometryObject
+export class Circle implements ICircle, IGeometryObject, IToString
 {
     public radius: number
     public get perimeter(){return this.radius * Math.PI * 2}

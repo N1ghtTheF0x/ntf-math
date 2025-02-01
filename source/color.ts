@@ -1,7 +1,6 @@
 import { ResolveError } from "./common/error"
 import { HexLike, check_hex, check_number, check_number_array, check_string, check_string_array, get_hex_part, has_property } from "./common/types"
-import { clamp } from "./index"
-
+import { clamp } from "./utils"
 
 function _hex_to_array(hex: HexLike)
 {
@@ -301,12 +300,13 @@ export class HSLColor implements IHSLA
     }
 }
 
+export type AnyColor = RGBAColor | HSLColor
 export type AnyColorArray = AnyRGBArray | AnyHSLArray
 export type AnyColorString = AnyRGBString | AnyHSLString
 export type IColor = IAnyRGB | IAnyHSL
 export type AnyColorLike = AnyColorArray | AnyColorString | IColor | HexLike | number
 
-export function resolveColor(a: unknown,preferHSL: boolean = false): RGBAColor | HSLColor
+export function resolveColor(a: unknown,preferHSL: boolean = false): AnyColor
 {
     const value = castColor(a,preferHSL)
     if(typeof value != "undefined")
@@ -314,9 +314,9 @@ export function resolveColor(a: unknown,preferHSL: boolean = false): RGBAColor |
     throw new ResolveError("Color",a)
 }
 
-export function castColor(a: unknown,preferHSL: boolean = false): RGBAColor | HSLColor | undefined
+export function castColor(a: unknown,preferHSL: boolean = false): AnyColor | undefined
 {
-    const results: Array<RGBAColor | HSLColor | undefined> = []
+    const results: Array<AnyColor | undefined> = []
     try
     {
         const rgba = RGBAColor.resolve(a)

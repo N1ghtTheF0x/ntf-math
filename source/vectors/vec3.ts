@@ -1,7 +1,7 @@
 import { ResolveError } from "../common/error"
-import { IVec2, Vec2} from "./vec2"
+import { IVec2, Vec2Like } from "./vec2"
 import { check_number_array, check_number, check_string, check_string_array, has_property } from "../common/types"
-import { clamp } from "../index"
+import { clamp } from "../utils"
 
 
 export interface IVec3 extends IVec2
@@ -114,9 +114,9 @@ export class Vec3 implements IVec3
     {
         return w ? `${this.x},${this.y},${this.z}` : `${this.x},${this.y},${this.z};${this.w}`
     }
-    public toVec2()
+    public toVec2(): Vec2Like
     {
-        return new Vec2(this.x,this.y,this.w)
+        return [this.x,this.y,this.w]
     }
     public clone()
     {

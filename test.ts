@@ -1,4 +1,4 @@
-import * as math from "./source/index"
+import * as math from "./dist/index.cjs"
 
 console.info("[VEC2] without w")
 console.dir(math.Vec2.resolve([100,200]))
@@ -20,11 +20,11 @@ console.dir(math.Vec3.resolve([100,200,300,-1]))
 console.dir(math.Vec3.resolve("100,200,300;-1"))
 console.dir(math.Vec3.resolve({x: 100,y: 200,z: 300,w: -1}))
 
-console.info("[SQUARE]")
-console.dir(math.Square.resolve([1920,1080]))
-console.dir(math.Square.resolve("1920x1080"))
-console.dir(math.Square.resolve({width: 1920,height: 1080}))
-console.dir(math.Square.resolve(69))
+console.info("[SIZE]")
+console.dir(math.Size.resolve([1920,1080]))
+console.dir(math.Size.resolve("1920x1080"))
+console.dir(math.Size.resolve({width: 1920,height: 1080}))
+console.dir(math.Size.resolve(69))
 
 console.info("[RECT] without w")
 console.dir(math.Rectangle.resolve([100,200,1920,1080]))

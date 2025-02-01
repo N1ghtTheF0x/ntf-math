@@ -1,8 +1,8 @@
 import { ResolveError } from "../common/error"
 import { check_number_array, check_number, check_string, check_string_array, has_property } from "../common/types"
-import { Square } from "../geometry/square"
+import { Size } from "../geometry/size"
 import { Vec3 } from "./vec3"
-import { clamp } from "../index"
+import { clamp } from "../utils"
 
 export interface IVec2
 {
@@ -102,7 +102,7 @@ export class Vec2 implements IVec2
     }
     public toSquare()
     {
-        return new Square(this.x,this.y)
+        return new Size(this.x,this.y)
     }
     public toVec3(z?: number)
     {

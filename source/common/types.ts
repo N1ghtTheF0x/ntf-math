@@ -10,7 +10,7 @@ export type JavaScriptTypeMap = {
     "function": Function
 }
 export type HexDigit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "A" | "B" | "C" | "D" | "E" | "F"
-export type HexLike = `#${string}` | `0x${string}` | string
+export type HexLike = `$${string}` | `#${string}` | `0x${string}` | string
 export type Predicate<T> = (a: unknown) => a is T
 
 export function check_number(obj: unknown): obj is number
