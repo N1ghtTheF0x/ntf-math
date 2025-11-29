@@ -158,7 +158,7 @@ export class Mat3 implements IMat3
         const m = new Mat3
         for(let index = 0;index < this._raw.length;index++)
             m._raw[index] = this._raw[index] + b._raw[index]
-        return this
+        return m
     }
     public subtract(mat: Mat3Like)
     {
@@ -166,7 +166,7 @@ export class Mat3 implements IMat3
         const m = new Mat3
         for(let index = 0;index < this._raw.length;index++)
             m._raw[index] = this._raw[index] - b._raw[index]
-        return this
+        return m
     }
     public multiply(mat: Mat3Like): Mat3
     public multiply(scalar: number): Mat3

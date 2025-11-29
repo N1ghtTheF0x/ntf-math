@@ -110,7 +110,7 @@ export class BoundingBox implements IBoundingBox, ISize, IToString
     public insidePoint(a: Vec2Like)
     {
         const point = Vec2.resolve(a)
-        return this.left <= point.x && this.right >= point.x && this.top >= point.y && this.bottom <= point.y
+        return this.left <= point.x && this.right >= point.x && this.top <= point.y && this.bottom >= point.y
     }
     public insideCircle(a: CircleLike)
     {
