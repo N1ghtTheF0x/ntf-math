@@ -1,4 +1,3 @@
-import { stringToBinary } from "../common/string"
 import { IHash } from "./hash"
 
 const STABLE = [
