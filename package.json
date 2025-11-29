@@ -1,15 +1,17 @@
 {
   "name": "@ntf/math",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "Another math library",
-  "files": ["dist"],
-  "main": "./dist/index.cjs",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.js",
   "module": "./dist/index.mjs",
-  "types": "./dist/index.d.cts",
+  "types": "./dist/index.d.ts",
   "exports": {
     "require": {
-      "types": "./dist/index.d.cts",
-      "default": "./dist/index.cjs"
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
     },
     "import": {
       "types": "./dist/index.d.mts",
@@ -17,16 +19,25 @@
     }
   },
   "scripts": {
-    "test": "tsx --project tsconfig.test.json test.ts",
-    "build": "pkgroll --src source",
-    "prepublishOnly": "npm run build"
+    "pretest": "pnpm run build",
+    "test": "tsx --tsconfig ./tests/nodejs/tsconfig.json ./tests/nodejs/test.cts",
+    "build:prod": "tsup",
+    "build": "pnpm run build:prod --sourcemap",
+    "prepublishOnly": "npm run build:prod"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/N1ghtTheF0x/ntf-math.git"
   },
   "keywords": [
-    "esm", "cjs", "nodejs", "browser", "math", "vector2", "vector3", "matrix"
+    "esm",
+    "cjs",
+    "nodejs",
+    "browser",
+    "math",
+    "vector2",
+    "vector3",
+    "matrix"
   ],
   "author": "N1ghtTheF0x",
   "license": "MIT",
@@ -35,9 +46,10 @@
   },
   "homepage": "https://github.com/N1ghtTheF0x/ntf-math#readme",
   "devDependencies": {
-    "typescript": "latest",
-    "tsx": "latest",
+    "@types/node": "latest",
     "express": "latest",
-    "pkgroll": "latest"
+    "tsup": "latest",
+    "tsx": "latest",
+    "typescript": "latest"
   }
 }
