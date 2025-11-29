@@ -9,6 +9,7 @@ export * from "./common/string"
 export * from "./common/types"
 // crypto
 export * from "./crypto/hash"
+export * from "./crypto/md2"
 // geometry
 export * from "./geometry/angle"
 export * from "./geometry/bbox"
