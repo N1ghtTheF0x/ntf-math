@@ -38,3 +38,9 @@ export function sdbm<V>(value: V)
     }
     return hash
 }
+
+export interface IHash
+{
+    update(input: Uint8Array): this
+    digest(): Uint8Array
+}
