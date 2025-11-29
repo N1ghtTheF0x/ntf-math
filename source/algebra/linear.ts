@@ -63,7 +63,7 @@ export class LinearFunction extends MathFunction<[number]>
             return [new Vec2(x)]
         return []
     }
-    public toString(): LinearFunctionString
+    public override toString(): LinearFunctionString
     {
         const bsign = sign_char(this.b)
         if(bsign)

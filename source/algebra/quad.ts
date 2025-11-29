@@ -54,7 +54,7 @@ export class QuadFunction extends MathFunction<[number]>
 
         return roots
     }
-    public toString<T extends QuadFunctionType>(type: T = "standard" as T): QuadFunctionString[T]
+    public override toString<T extends QuadFunctionType>(type: T = "standard" as T): QuadFunctionString[T]
     {
         switch(type)
         {
