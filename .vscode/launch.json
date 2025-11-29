@@ -5,20 +5,20 @@
             "type": "chrome",
             "request": "launch",
             "url": "http://localhost:43434/test.html",
-            "name": "Test Webpage",
+            "name": "Test Browser",
             "server":{
-                "program": "server.js"
+                "program": "${workspaceFolder}/scripts/server.cjs"
             }
         },
         {
             "type": "node",
             "request": "launch",
-            "name": "Launch Test",
+            "name": "Test NodeJS",
+            "program": "${workspaceFolder}/tests/nodejs/test.cts",
+            "runtimeExecutable": "tsx",
             "runtimeArgs": [
-                "-r","ts-node/register/transpile-only"
-            ],
-            "args": [
-                "test.ts"
+                "--tsconfig",
+                "${workspaceFolder}/tests/nodejs/tsconfig.json"
             ]
         }
     ]

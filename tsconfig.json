@@ -3,11 +3,16 @@
     "exclude": ["node_modules","dist"],
     "compilerOptions": {
         "target": "ESNext",
+        "module": "esnext",
+        "moduleResolution": "bundler",
         "lib": ["ESNext"],
+        "types": [],
         "strict": true,
         "sourceMap": true,
         "declaration": true,
         "declarationMap": true,
-        "declarationDir": "dist/types"
+        "declarationDir": "dist/types",
+        "noImplicitOverride": true,
+        "noImplicitReturns": true
     }
 }
