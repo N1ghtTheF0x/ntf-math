@@ -43,10 +43,10 @@ export class Rectangle implements IRectangle, IGeometryObject, IToString
         if(a == null || typeof a == "undefined")
             return undefined
         if(check_number_array(a,4))
-            return new this(a[0],a[1],a[2],a[3])
+            return new this([a[0],a[1]],[a[2],a[3]])
         if(check_number_array(a,5))
         {
-            const rect = new this(a[0],a[1],a[3],a[4])
+            const rect = new this([a[0],a[1]],[a[3],a[4]])
             rect.w = a[2]
             return rect
         }
@@ -57,13 +57,13 @@ export class Rectangle implements IRectangle, IGeometryObject, IToString
             const size = Size.cast(ssize)
             if(typeof pos == "undefined" || typeof size == "undefined")
                 return undefined
-            const rect = new this(pos.x,pos.y,size.width,size.height)
+            const rect = new this([pos.x,pos.y],[size.width,size.height])
             rect.w = pos.w
             return rect
         }
         if(has_property(a,"x","number") && has_property(a,"y","number") && has_property(a,"width","number") && has_property(a,"height","number"))
         {
-            const rect = new this(a.x,a.y,a.width,a.height)
+            const rect = new this([a.x,a.y],[a.width,a.height])
             if(has_property(a,"w","number"))
                 rect.w = a.w
             return rect
@@ -75,25 +75,9 @@ export class Rectangle implements IRectangle, IGeometryObject, IToString
         return typeof this.cast(a) != "undefined"
     }
     public constructor(pos: Vec2Like,size: SizeLike)
-    public constructor(x: number,y: number,width: number,height: number)
-    public constructor(a: Vec2Like | number,b: SizeLike | number,c?: number,d?: number)
     {
-        const vec = Vec2.is(a) ? Vec2.resolve(a) : undefined
-        const size = Size.is(b) ? Size.resolve(b) : undefined
-        const x = typeof a == "number" ? a : vec?.x
-        if(!check_number(x))
-            throw new TypeError("expected number for x position")
-        const y = typeof b == "number" ? b : vec?.y
-        if(!check_number(y))
-            throw new TypeError("expected number for y position")
-        const width = typeof c == "number" ? c : size?.width
-        if(!check_number(width))
-            throw new TypeError("expected number for width")
-        const height = typeof d == "number" ? d : size?.height
-        if(!check_number(height))
-            throw new TypeError("expected number for height")
-        this.position = new Vec2(x,y)
-        this.size = new Size(width,height)
+        this.position = Vec2.resolve(pos)
+        this.size = Size.resolve(size)
     }
     public toArray(w = false): RectangleArray
     {

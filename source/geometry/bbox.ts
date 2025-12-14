@@ -100,7 +100,7 @@ export class BoundingBox implements IBoundingBox, ISize, IToString
     }
     public toRectangle()
     {
-        return new Rectangle(this.left,this.top,this.width,this.height)
+        return new Rectangle([this.left,this.top],[this.width,this.height])
     }
     public inside(a: BoundingBoxLike)
     {
