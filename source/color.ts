@@ -131,7 +131,7 @@ export class RGBAColor implements IRBBA
     }
     public toString(withAlpha = false): AnyRGBString
     {
-        return withAlpha ? `rgba(${_fix_integer(this.red)},${_fix_integer(this.green)},${_fix_integer(this.blue)},${_fix_integer(this.alpha)})` : (this.alpha == 1 ? `rgb(${_fix_integer(this.red)},${_fix_integer(this.green)},${_fix_integer(this.blue)})` : this.toString(true))
+        return withAlpha ? `rgba(${_fix_integer(this.red)},${_fix_integer(this.green)},${_fix_integer(this.blue)},${this.alpha})` : (this.alpha == 1 ? `rgb(${_fix_integer(this.red)},${_fix_integer(this.green)},${_fix_integer(this.blue)})` : this.toString(true))
     }
     public toHSL(withAlpha = true)
     {
@@ -264,7 +264,7 @@ export class HSLColor implements IHSLA
     }
     public toString(withAlpha = false): AnyHSLString
     {
-        return withAlpha ? `hsla(${_fix_integer(this.hue)},${_fix_integer(this.saturation)},${_fix_integer(this.luminace)},${_fix_integer(this.alpha)})` : (this.alpha == 1 ? `hsl(${_fix_integer(this.hue)},${_fix_integer(this.saturation)},${_fix_integer(this.luminace)})` : this.toString(true))
+        return withAlpha ? `hsla(${_fix_integer(this.hue)},${_fix_integer(this.saturation)},${_fix_integer(this.luminace)},${this.alpha})` : (this.alpha == 1 ? `hsl(${_fix_integer(this.hue)},${_fix_integer(this.saturation)},${_fix_integer(this.luminace)})` : this.toString(true))
     }
     public toRGB(withAlpha = true)
     {
