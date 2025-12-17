@@ -1,3 +1,4 @@
+import { NodeJSCustomInspect } from "../common/types"
 import { IHash } from "./hash"
 
 const STABLE = [
@@ -49,7 +50,7 @@ export class MD2 implements IHash
         }
         return this
     }
-    private _transform(data: Uint8Array)
+    private _transform(data: Uint8Array): void
     {
         for(let i = 0;i < 16;++i)
         {
@@ -81,5 +82,17 @@ export class MD2 implements IHash
         this._transform(this._data)
         this._transform(this._checksum)
         return this._state.slice()
+    }
+    public toString(): string
+    {
+        return ""
+    }
+    public get [Symbol.toStringTag](): string
+    {
+        return "MD2"
+    }
+    public [NodeJSCustomInspect](): string
+    {
+        return `MD2 <${this.toString()}>`
     }
 }

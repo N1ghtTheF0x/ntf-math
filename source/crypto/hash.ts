@@ -1,10 +1,10 @@
-import { stringify } from "../common/string"
+import { IToString } from "../common/string"
 
 export const DJB2_OFFSET = 5381n
 
-export function djb2<V>(value: V)
+export function djb2<V>(value: V): bigint
 {
-    const string = stringify(value)
+    const string = String(value)
     let hash = DJB2_OFFSET
     for(let i = 0;i < string.length;i++)
     {
@@ -16,9 +16,9 @@ export function djb2<V>(value: V)
 export const FNV1_OFFSET = 14695981039346656037n
 export const FNV1_PRIME = 1099511628211n
 
-export function fnv1<V>(value: V)
+export function fnv1<V>(value: V): bigint
 {
-    const string = stringify(value)
+    const string = String(value)
     let hash = FNV1_OFFSET
     for(let i = 0;i < string.length;i++)
     {
@@ -28,9 +28,9 @@ export function fnv1<V>(value: V)
     return hash
 }
 
-export function sdbm<V>(value: V)
+export function sdbm<V>(value: V): bigint
 {
-    const string = stringify(value)
+    const string = String(value)
     let hash = 0n
     for(let i = 0;i < string.length;i++)
     {
@@ -39,7 +39,7 @@ export function sdbm<V>(value: V)
     return hash
 }
 
-export interface IHash
+export interface IHash extends IToString
 {
     update(input: Uint8Array): this
     digest(): Uint8Array

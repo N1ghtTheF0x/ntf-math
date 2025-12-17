@@ -1,4 +1,5 @@
 import { IToString } from "../common/string"
+import { NodeJSCustomInspect } from "../common/types"
 import { Vec2 } from "../vectors/vec2"
 
 /**
@@ -18,4 +19,6 @@ export abstract class MathFunction<Input extends Array<number> = Array<number>> 
      * @returns The root points, this can be an empty array if no root points have been found
      */
     public abstract roots(): Array<Vec2>
+    public abstract get [Symbol.toStringTag](): string
+    public abstract [NodeJSCustomInspect](): string
 }

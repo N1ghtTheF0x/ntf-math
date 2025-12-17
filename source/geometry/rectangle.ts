@@ -1,21 +1,26 @@
 import { ResolveError } from "../common/error"
-import { IToString } from "../common/string"
-import { check_number, check_number_array, check_string, has_property } from "../common/types"
-import { IVec2, Vec2, Vec2Array, Vec2Like, Vec2String } from "../vectors/vec2"
-import { BoundingBoxLike } from "./bbox"
+import { checkNumberArray, checkString, hasProperty, NodeJSCustomInspect } from "../common/types"
+import { IToVec2, IVec2, Vec2, Vec2Array, Vec2Like, Vec2String } from "../vectors/vec2"
+import { BoundingBoxLike, IToBoundingBox } from "./bbox"
 import { IGeometryObject } from "./object"
-import { ISize, Size, SizeArray, SizeLike, SizeString } from "./size"
+import { ISize, IToSize, Size, SizeArray, SizeLike, SizeString } from "./size"
 
 export interface IRectangle extends IVec2, ISize
 {
 
 }
 
+export interface IToRectangle
+{
+    toRectangle(): RectangleLike
+}
+
 export type RectangleArray = [...Vec2Array,...SizeArray]
 export type RectangleString = `${Vec2String}|${SizeString}`
-export type RectangleLike = IRectangle | RectangleArray | RectangleString
+export type RectangleLike = IRectangle | RectangleArray | RectangleString | IToRectangle
+export type RectangleArguments = [rectangle: RectangleLike] | [position: Vec2Like,size: SizeLike] | RectangleArray
 
-export class Rectangle implements IRectangle, IGeometryObject, IToString
+export class Rectangle implements IRectangle, IGeometryObject, IToBoundingBox, IToVec2, IToSize
 {
     public position: Vec2
     public size: Size
@@ -38,19 +43,25 @@ export class Rectangle implements IRectangle, IGeometryObject, IToString
             return value
         throw new ResolveError("Rectangle",a)
     }
+    public static resolveArgs(args: RectangleArguments): Rectangle
+    {
+        if(checkNumberArray(args,4))
+            return new this([args[0],args[1]],[args[2],args[3]])
+        return this.resolve(args[0])
+    }
     public static cast(a: unknown): Rectangle | undefined
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(check_number_array(a,4))
+        if(checkNumberArray(a,4))
             return new this([a[0],a[1]],[a[2],a[3]])
-        if(check_number_array(a,5))
+        if(checkNumberArray(a,5))
         {
             const rect = new this([a[0],a[1]],[a[3],a[4]])
             rect.w = a[2]
             return rect
         }
-        if(check_string(a))
+        if(checkString(a))
         {
             const [spos,ssize] = a.split("|")
             const pos = Vec2.cast(spos)
@@ -61,10 +72,12 @@ export class Rectangle implements IRectangle, IGeometryObject, IToString
             rect.w = pos.w
             return rect
         }
-        if(has_property(a,"x","number") && has_property(a,"y","number") && has_property(a,"width","number") && has_property(a,"height","number"))
+        if(hasProperty(a,"toRectangle","function"))
+            return this.cast(a.toRectangle())
+        if(hasProperty(a,"x","number") && hasProperty(a,"y","number") && hasProperty(a,"width","number") && hasProperty(a,"height","number"))
         {
             const rect = new this([a.x,a.y],[a.width,a.height])
-            if(has_property(a,"w","number"))
+            if(hasProperty(a,"w","number"))
                 rect.w = a.w
             return rect
         }
@@ -79,13 +92,21 @@ export class Rectangle implements IRectangle, IGeometryObject, IToString
         this.position = Vec2.resolve(pos)
         this.size = Size.resolve(size)
     }
-    public toArray(w = false): RectangleArray
+    public toArray(w: boolean = this.w !== 1): RectangleArray
     {
         return [...this.position.toArray(w),...this.size.toArray()]
     }
-    public toString(w = false): RectangleString
+    public toString(w: boolean = this.w !== 1): RectangleString
     {
         return `${this.position.toString(w)}|${this.size.toString()}`
+    }
+    public get [Symbol.toStringTag](): string
+    {
+        return "Rectangle"
+    }
+    public [NodeJSCustomInspect](): string
+    {
+        return `Rectangle <${this.toString()}>`
     }
     public toJSON(): IRectangle
     {
@@ -95,13 +116,24 @@ export class Rectangle implements IRectangle, IGeometryObject, IToString
     {
         return [this.x,this.x + this.width,this.y,this.y + this.height]
     }
-    public clone()
+    public toVec2(): Vec2Like
+    {
+        return [this.x,this.y,this.w]
+    }
+    public toSize(): SizeLike
+    {
+        return [this.width,this.height]
+    }
+    public clone(): Rectangle
     {
         return new Rectangle(this.position.clone(),this.size.clone())
     }
-    public equals(rectangle: RectangleLike)
+    public equals(rectangle: RectangleLike): boolean
+    public equals(position: Vec2Like,size: SizeLike): boolean
+    public equals(x: number,y: number,width: number,height: number): boolean
+    public equals(...args: RectangleArguments): boolean
     {
-        const rect = Rectangle.resolve(rectangle)
+        const rect = Rectangle.resolveArgs(args)
         return this.position.equals(rect.position) && this.size.equals(rect.size)
     }
 }

@@ -1,4 +1,14 @@
+/**
+ * All valid types of JavaScript you can get from `typeof`
+ */
 export type JavaScriptTypes = "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function"
+/**
+ * A JavaScript function that can be typed (or not)
+ */
+export type JavaScriptFunction<Args extends Array<any> = Array<any>,ReturnType extends any = any> = (...args: Args) => ReturnType
+/**
+ * A mapped type for getting the type of a JavaScript value
+ */
 export type JavaScriptTypeMap = {
     "string": string
     "number": number
@@ -7,46 +17,41 @@ export type JavaScriptTypeMap = {
     "symbol": symbol
     "undefined": undefined
     "object": object
-    "function": Function
+    "function": JavaScriptFunction
 }
-export type HexDigit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" | "A" | "B" | "C" | "D" | "E" | "F"
+/**
+ * Any kind of JavaScript number
+ */
+export type JavaScriptNumber = number | bigint
+
+/**
+ * A array that has a fixed length
+ */
+export type FixedArray<T,Length extends number> = Array<T> & {length: Length}
+
+/**
+ * A value that might look like a hex value
+ */
 export type HexLike = `$${string}` | `#${string}` | `0x${string}` | string
+/**
+ * A predicate function type for verifing types
+ */
 export type Predicate<T> = (a: unknown) => a is T
 
-export function check_number(obj: unknown): obj is number
+/**
+ * Check if `value` is a finite valid number
+ * @param value A value
+ */
+export function checkNumber(value: unknown): value is number
 {
-    return obj != null && typeof obj == "number" && !isNaN(obj) && isFinite(obj)
+    return value !== null && typeof value == "number" && !isNaN(value) && isFinite(value)
 }
 
-export function check_hex_digit(obj: unknown): obj is HexDigit
-{
-    if(!check_string(obj) || obj.length != 1)
-        return false
-    switch(obj.toUpperCase())
-    {
-        default:
-            return false
-        case "0":
-        case "1":
-        case "2":
-        case "3":
-        case "4":
-        case "5":
-        case "6":
-        case "7":
-        case "8":
-        case "9":
-        case "A":
-        case "B":
-        case "C":
-        case "D":
-        case "E":
-        case "F":
-            return true
-    }
-}
-
-export function get_hex_part(string: string): string
+/**
+ * Retrieve the value of a hex string
+ * @param string A string
+ */
+export function getHexValue(string: string): string
 {
     let offset = 0
     if(string.startsWith("#") || string.startsWith("$"))
@@ -56,40 +61,73 @@ export function get_hex_part(string: string): string
     return string.substring(offset)
 }
 
-export function check_hex(obj: unknown): obj is HexLike
+/**
+ * Check if `value` is a hex value
+ * @param value A value
+ */
+export function checkHex(value: unknown): value is HexLike
 {
-    if(!check_string(obj))
+    if(!checkString(value))
         return false
-    const value = get_hex_part(obj).split("").map((char) => parseInt(char.toUpperCase(),16))
-    return check_number_array(value)
+    const hexValue = getHexValue(value).split("").map((char) => parseInt(char.toUpperCase(),16))
+    return checkNumberArray(hexValue)
 }
 
-export function check_string(obj: unknown): obj is string
+/**
+ * Check if `value` is a string with content
+ * @param value A value
+ */
+export function checkString(value: unknown): value is string
 {
-    return obj != null && typeof obj == "string" && obj.length > 0
+    return value !== null && typeof value == "string" && value.length > 0
 }
 
-export function check_array<T>(obj: unknown,predicate?: Predicate<T>,requiredLength?: number): obj is Array<T>
+/**
+ * Check if `value` is a array
+ * @param value A value
+ * @param predicate A function that checks each item
+ * @param requiredLength If needed, check if it is a fixed length array
+ */
+export function checkArray<T,Length extends number>(value: unknown,predicate?: Predicate<T>,requiredLength?: number): value is FixedArray<T,Length>
 {
-    if(!Array.isArray(obj)) return false
-    if(requiredLength && requiredLength != obj.length) return false
-    for(const item of obj)
-        if(predicate && !predicate(item))
+    if(!Array.isArray(value)) return false
+    if(typeof requiredLength == "number" && requiredLength !== value.length) return false
+    for(const item of value)
+        if(typeof predicate == "function" && !predicate(item))
             return false
     return true
 }
 
-export function check_number_array(obj: unknown,requiredLength?: number): obj is Array<number>
+/**
+ * Check if `value` is a number array
+ * @param value A value
+ * @param requiredLength If needed, check if it is a fixed length array
+ */
+export function checkNumberArray<Length extends number>(value: unknown,requiredLength?: Length): value is FixedArray<number,Length>
 {
-    return check_array(obj, check_number, requiredLength)
+    return checkArray<number,Length>(value, checkNumber, requiredLength)
 }
 
-export function check_string_array(obj: unknown,requiredLength?: number): obj is Array<string>
+/**
+ * Check if `value` is a string array
+ * @param value A value
+ * @param requiredLength If needed, check if it is a fixed length array
+ */
+export function checkStringArray<Length extends number>(value: unknown,requiredLength?: Length): value is FixedArray<string,Length>
 {
-    return check_array(obj, check_string, requiredLength)
+    return checkArray<string,Length>(value, checkString, requiredLength)
 }
 
-export function has_property<Obj,Name extends string,Type extends JavaScriptTypes>(obj: Obj,name: Name,type: Type): obj is Obj & {[name in Name]: JavaScriptTypeMap[Type]}
+/**
+ * Check if `value` has a property called `name`
+ * @param value A value
+ * @param propertyName The name of the property
+ * @param type
+ */
+export function hasProperty<Obj extends unknown,K extends PropertyKey,T extends JavaScriptTypes>(value: Obj,propertyName: K,type: T): value is Obj & {[name in K]: JavaScriptTypeMap[T]}
 {
-    return obj != null && typeof obj == "object" && name in obj && typeof (obj as any)[name] == type
+    return value !== null && typeof value == "object" && 
+    propertyName in value && typeof (value as any)[propertyName] == type
 }
+
+export const NodeJSCustomInspect = Symbol.for("nodejs.util.inspect.custom")

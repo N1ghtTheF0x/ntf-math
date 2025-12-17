@@ -1,3 +1,5 @@
+import { JavaScriptNumber } from "./common/types"
+
 /**
  * Clamp `value` between `min` and `max`
  * @param value The input value
@@ -5,7 +7,7 @@
  * @param max The maximum value
  * @returns A value between `min` and `max`
  */
-export function clamp<T extends number | bigint>(value: T, min: T, max: T)
+export function clamp<T extends number | bigint>(value: T, min: T, max: T): T
 {
     if(value <= min)
         return min
@@ -20,7 +22,7 @@ export function clamp<T extends number | bigint>(value: T, min: T, max: T)
  * @param b The input value b
  * @returns The result
  */
-export function log_hypot(a: number, b: number)
+export function logHypot(a: number, b: number): number
 {
     const a_abs = Math.abs(a)
     const b_abs = Math.abs(b)
@@ -35,3 +37,5 @@ export function log_hypot(a: number, b: number)
 }
 
 export const EPSILON = 1e-16
+
+export const lerp = <T extends number | bigint>(a: T,b: T,t: T) => ((typeof a == "number" ? 1 : 1n) as T - t) * a + t * b

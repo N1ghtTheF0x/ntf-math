@@ -1,40 +1,40 @@
 import { ResolveError } from "./common/error"
-import { HexLike, check_hex, check_number, check_number_array, check_string, check_string_array, get_hex_part, has_property } from "./common/types"
+import { IToString } from "./common/string"
+import { FixedArray, HexLike, NodeJSCustomInspect, checkHex, checkNumber, checkNumberArray, checkString, checkStringArray, getHexValue, hasProperty } from "./common/types"
 import { clamp } from "./utils"
+import { IToVec2, Vec2Like } from "./vectors/vec2"
+import { IToVec3, Vec3Like } from "./vectors/vec3"
 
-function _hex_to_array(hex: HexLike)
+function __hex_to_array__(hex: HexLike): FixedArray<number,4> | undefined
 {
-    if(!check_hex(hex))
+    if(!checkHex(hex))
         return undefined
-    const part = get_hex_part(hex)
-    const a = parseInt(part.substring(0,2),16)/0xff
-    const b = parseInt(part.substring(2,4),16)/0xff
-    const c = parseInt(part.substring(4,6),16)/0xff
-    const d = part.length == 8 ? parseInt(hex.substring(6,8),16)/0xff : 1
-    return [a,b,c,d] as const
+    const part = getHexValue(hex)
+    const red = parseInt(part.substring(0,2),16)/0xff
+    const green = parseInt(part.substring(2,4),16)/0xff
+    const blue = parseInt(part.substring(4,6),16)/0xff
+    const alpha = part.length == 8 ? parseInt(hex.substring(6,8),16)/0xff : 1
+    return [red,green,blue,alpha]
 }
 
-function _number_to_rgb(number: number)
+function __number_to_rgb__(number: number): FixedArray<number,3>
 {
     const blue = number & 0xff
     const green = (number & 0xff00) >>> 8
     const red = (number & 0xff0000) >>> 16
-    return [red/0xff,green/0xff,blue/0xff] as const
+    return [red/0xff,green/0xff,blue/0xff]
 }
 
-function _number_to_rgba(number: number)
+function __number_to_rgba__(number: number): FixedArray<number,4>
 {
     const alpha = number & 0xff
     const blue = (number & 0xff00) >>> 8
     const green = (number & 0xff0000) >>> 16
     const red = (number & 0xff000000) >>> 24
-    return [red/0xff,green/0xff,blue/0xff,alpha/0xff] as const
+    return [red/0xff,green/0xff,blue/0xff,alpha/0xff]
 }
 
-function _fix_integer(number: number)
-{
-    return number * 0xff | 0
-}
+const __to_byte__ = (scale: number) => clamp(scale * 0xff | 0,0,0xff)
 
 export interface IRGB
 {
@@ -42,24 +42,40 @@ export interface IRGB
     green: number
     blue: number
 }
+
+export interface IToRGB
+{
+    toRGB(): RGBLike
+}
+
 export type RGBArray = [number,number,number]
 export type RGBString = `rgb(${number},${number},${number})`
-export type RGBLike = IRGB | RGBArray | RGBString
+export type RGBLike = IRGB | RGBArray | RGBString | IToRGB
+export type RGBArguments = [rgb: RGBLike] | RGBArray
 
 export interface IRBBA extends IRGB
 {
     alpha: number
 }
+
+export interface IToRGBA
+{
+    toRGBA(): RGBALike
+}
+
 export type RGBAArray = [number,number,number,number]
 export type RGBAString = `rgba(${number},${number},${number},${number})`
-export type RGBALike = IRBBA | RGBAArray | RGBAString
+export type RGBALike = IRBBA | RGBAArray | RGBAString | IToRGBA
+export type RGBAArguments = [rgba: RGBALike] | RGBAArray
 
 export type IAnyRGB = IRGB | IRBBA
 export type AnyRGBArray = RGBArray | RGBAArray
 export type AnyRGBString = RGBString | RGBAString
-export type AnyRGBLike = IAnyRGB | AnyRGBArray | AnyRGBString | HexLike | number
+export type IAnyToRGB = IToRGB | IToRGBA
+export type AnyRGBLike = IAnyRGB | AnyRGBArray | AnyRGBString | HexLike | number | IAnyToRGB
+export type AnyRGBArguments = RGBArguments | RGBAArguments
 
-export class RGBAColor implements IRBBA
+export class RGBA implements IRBBA, IToVec2, IToVec3, IToHSL, IToHSLA, IToString
 {
     private _red: number
     public get red(){return this._red}
@@ -73,38 +89,48 @@ export class RGBAColor implements IRBBA
     private _alpha: number
     public get alpha(){return this._alpha}
     public set alpha(val){this._alpha = clamp(val,0,1)}
-    public static resolve(a: unknown): RGBAColor
+    public static resolve(a: unknown): RGBA
     {
         const value = this.cast(a)
         if(typeof value != "undefined")
             return value
         throw new ResolveError("RGBAColor",a)
     }
-    public static cast(a: unknown): RGBAColor | undefined
+    public static resolveArgs(args: AnyRGBArguments): RGBA
+    {
+        if(checkNumberArray(args,3) || checkNumberArray(args,4))
+            return new this(args[0],args[1],args[2],args[3])
+        return this.resolve(args[0])
+    }
+    public static cast(a: unknown): RGBA | undefined
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(check_number_array(a,3) || check_number_array(a,4))
+        if(checkNumberArray(a,3) || checkNumberArray(a,4))
             return new this(a[0],a[1],a[2],a[3])
-        if(has_property(a,"red","number") && has_property(a,"green","number") && has_property(a,"blue","number"))
-            return new this(a.red,a.green,a.blue,has_property(a,"alpha","number") ? a.alpha : undefined)
-        if(check_number(a))
+        if(hasProperty(a,"toRGB","function"))
+            return this.cast(a.toRGB())
+        if(hasProperty(a,"toRGBA","function"))
+            return this.cast(a.toRGBA())
+        if(hasProperty(a,"red","number") && hasProperty(a,"green","number") && hasProperty(a,"blue","number"))
+            return new this(a.red,a.green,a.blue,hasProperty(a,"alpha","number") ? a.alpha : undefined)
+        if(checkNumber(a))
         {
             const hex = a.toString(16)
-            const convert = hex.length <= 6 ? _number_to_rgb : _number_to_rgba
+            const convert = hex.length <= 6 ? __number_to_rgb__ : __number_to_rgba__
             return this.cast(convert(a))
         }
-        if(check_string(a))
+        if(checkString(a))
         {
             if(a.startsWith("rgb"))
             {
                 const hasAlpha = a.startsWith("rgba")
                 const offset = hasAlpha ? 5 : 4
                 const parts = a.substring(offset,a.indexOf(")",offset)).split(",")
-                if(check_string_array(parts,hasAlpha ? 4 : 3))
+                if(checkStringArray(parts,hasAlpha ? 4 : 3))
                     return this.cast(parts.map((v) => parseInt(v) / 0xff))
             }
-            return this.cast(_hex_to_array(a))
+            return this.cast(__hex_to_array__(a))
         }
         return undefined
     }
@@ -119,40 +145,64 @@ export class RGBAColor implements IRBBA
         this._blue = clamp(blue,0,1)
         this._alpha = clamp(alpha,0,1)
     }
-    public toArray(withAlpha = false): AnyRGBArray
+    public toArray(withAlpha: boolean = this._alpha !== 1): AnyRGBArray
     {
-        return withAlpha ? [this.red,this.green,this.blue,this.alpha] : (this.alpha == 1 ? [this.red,this.green,this.blue] : this.toArray(true))
+        return withAlpha ? [this.red,this.green,this.blue,this.alpha] : [this.red,this.green,this.blue] 
     }
-    public toJSON(withAlpha = false): IAnyRGB
+    public toJSON(withAlpha: boolean = this._alpha !== 1): IAnyRGB
     {
         return withAlpha ? {
             red: this.red,green: this.green,blue: this.blue,alpha: this.alpha
-        } : (this.alpha == 1 ? {red: this.red,green: this.green,blue: this.blue} : this.toJSON(true))
+        } : {
+            red: this.red,green: this.green,blue: this.blue
+        }
     }
-    public toString(withAlpha = false): AnyRGBString
+    public toString(withAlpha: boolean = this._alpha !== 1): AnyRGBString
     {
-        return withAlpha ? `rgba(${_fix_integer(this.red)},${_fix_integer(this.green)},${_fix_integer(this.blue)},${this.alpha})` : (this.alpha == 1 ? `rgb(${_fix_integer(this.red)},${_fix_integer(this.green)},${_fix_integer(this.blue)})` : this.toString(true))
+        return withAlpha ? `rgba(${__to_byte__(this.red)},${__to_byte__(this.green)},${__to_byte__(this.blue)},${this.alpha})` : `rgb(${__to_byte__(this.red)},${__to_byte__(this.green)},${__to_byte__(this.blue)})`
     }
-    public toHSL(withAlpha = true)
+    public get [Symbol.toStringTag](): string
+    {
+        return "RGBA"
+    }
+    public [NodeJSCustomInspect](): string
+    {
+        return `RGBA <${this.toString()}>`
+    }
+    public toVec2(): Vec2Like
+    {
+        return [this.red,this.green,this.blue]
+    }
+    public toVec3(): Vec3Like
+    {
+        return [this.red,this.green,this.blue,this.alpha]
+    }
+    public toHSL(withAlpha?: false): HSLLike
+    public toHSL(withAlpha?: true): HSLALike
+    public toHSL(withAlpha: boolean = this._alpha !== 1): HSLLike | HSLALike
     {
         const red = this.red, green = this.green, blue = this.blue
         const min = Math.min(red,green,blue), max = Math.max(red,green,blue)
         const luminace = (min+max)/2
         if(min == max)
-            return new HSLColor(0,0,luminace,withAlpha ? this.alpha : undefined)
+            return new HSLA(0,0,luminace,withAlpha ? this.alpha : undefined)
         const d = max - min
         const saturation = luminace > 0.5 ? d / (2 - max - min) : d / (max + min)
         if(max == red)
-            return new HSLColor(((green - blue) / d + (green < blue ? 6 : 0))/6,saturation,luminace)
+            return new HSLA(((green - blue) / d + (green < blue ? 6 : 0))/6,saturation,luminace,withAlpha ? this.alpha : undefined)
         if(max == green)
-            return new HSLColor(((blue - red) / d + 2)/6,saturation,luminace)
+            return new HSLA(((blue - red) / d + 2)/6,saturation,luminace,withAlpha ? this.alpha : undefined)
         if(max == blue)
-            return new HSLColor(((red - green) / d + 4)/6,saturation,luminace)
-        return new HSLColor(0,saturation,luminace,withAlpha ? this.alpha : undefined)
+            return new HSLA(((red - green) / d + 4)/6,saturation,luminace,withAlpha ? this.alpha : undefined)
+        return new HSLA(0,saturation,luminace,withAlpha ? this.alpha : undefined)
     }
-    public invert(withAlpha = false)
+    public toHSLA(): HSLALike
     {
-        return new RGBAColor(
+        return this.toHSL(true)
+    }
+    public invert(withAlpha: boolean = this._alpha !== 1): RGBA
+    {
+        return new RGBA(
             1 - this.red,
             1 - this.green,
             1 - this.blue,
@@ -167,24 +217,40 @@ export interface IHSL
     saturation: number
     luminace: number
 }
+
+export interface IToHSL
+{
+    toHSL(): HSLLike
+}
+
 export type HSLArray = [number,number,number]
 export type HSLString = `hsl(${number},${number},${number})`
-export type HSLLike = IHSL | HSLArray | HSLString
+export type HSLLike = IHSL | HSLArray | HSLString | IToHSL
+export type HSLArguments = HSLArray | [hsl: HSLLike]
 
 export interface IHSLA extends IHSL
 {
     alpha: number
 }
+
+export interface IToHSLA
+{
+    toHSLA(): HSLALike
+}
+
 export type HSLAArray = [number,number,number,number]
 export type HSLAString = `hsla(${number},${number},${number},${number})`
-export type HSLALike = IHSLA | HSLAArray | HSLAString
+export type HSLALike = IHSLA | HSLAArray | HSLAString | IToHSLA
+export type HSLAArguments = HSLAArray | [hsla: HSLALike]
 
 export type IAnyHSL = IHSL | IHSLA
 export type AnyHSLArray = HSLArray | HSLAArray
 export type AnyHSLString = HSLString | HSLAString
-export type AnyHSLLike = IAnyHSL | AnyHSLArray | AnyHSLString | HexLike | number
+export type IAnyToHSL = IToHSL | IToHSLA
+export type AnyHSLLike = IAnyHSL | AnyHSLArray | AnyHSLString | HexLike | number | IAnyToHSL
+export type AnyHSLArguments = HSLArguments | HSLAArguments
 
-export class HSLColor implements IHSLA
+export class HSLA implements IHSLA, IToRGB, IToRGBA, IToVec2, IToVec3, IToString
 {
     private _hue: number
     public get hue(){return this._hue}
@@ -198,81 +264,103 @@ export class HSLColor implements IHSLA
     private _alpha: number
     public get alpha(){return this._alpha}
     public set alpha(val){this._alpha = clamp(val,0,1)}
-    public static resolve(a: unknown): HSLColor
+    public static resolve(a: unknown): HSLA
     {
         const value = this.cast(a)
         if(typeof value != "undefined")
             return value
         throw new ResolveError("HSLColor",a)
     }
-    public static cast(a: unknown): HSLColor | undefined
+    public static resolveArgs(args: AnyHSLArguments): HSLA
+    {
+        if(checkNumberArray(args,3) || checkNumberArray(args,4))
+            return new this(args[0],args[1],args[2],args[3])
+        return this.resolve(args[0])
+    }
+    public static cast(a: unknown): HSLA | undefined
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(check_number_array(a,3) || check_number_array(a,4))
+        if(checkNumberArray(a,3) || checkNumberArray(a,4))
             return new this(a[0],a[1],a[2],a[3])
-        if(has_property(a,"hue","number") && has_property(a,"saturation","number") && has_property(a,"luminace","number"))
-            return new this(a.hue,a.saturation,a.luminace,has_property(a,"alpha","number") ? a.alpha : undefined)
-        if(check_number(a))
+        if(hasProperty(a,"toHSL","function"))
+            return this.cast(a.toHSL())
+        if(hasProperty(a,"toHSLA","function"))
+            return this.cast(a.toHSLA())
+        if(hasProperty(a,"hue","number") && hasProperty(a,"saturation","number") && hasProperty(a,"luminace","number"))
+            return new this(a.hue,a.saturation,a.luminace,hasProperty(a,"alpha","number") ? a.alpha : undefined)
+        if(checkNumber(a))
         {
             const hex = a.toString(16)
-            const convert = hex.length <= 6 ? _number_to_rgb : _number_to_rgba
+            const convert = hex.length <= 6 ? __number_to_rgb__ : __number_to_rgba__
             return this.cast(convert(a))
         }
-        if(check_string(a))
+        if(checkString(a))
         {
             if(a.startsWith("hsl"))
             {
                 const hasAlpha = a.startsWith("hsla")
                 const offset = hasAlpha ? 5 : 4
                 const parts = a.substring(offset,a.indexOf(")",offset)).split(",")
-                if(check_string_array(parts,hasAlpha ? 4 : 3))
+                if(checkStringArray(parts,hasAlpha ? 4 : 3))
                     return this.cast(parts.map((v) => parseInt(v) / 0xff))
             }
-            return this.cast(_hex_to_array(a))
+            return this.cast(__hex_to_array__(a))
         }
         return undefined
     }
-    public static is(a: unknown)
+    public static is(a: unknown): a is AnyHSLLike
     {
         return typeof this.cast(a) != "undefined"
     }
     public constructor(hue: number,saturation: number,luminace: number,alpha: number = 1)
     {
-        if(!check_number(hue))
+        if(!checkNumber(hue))
             throw new TypeError("expected number for hue")
-        if(!check_number(saturation))
+        if(!checkNumber(saturation))
             throw new TypeError("expected number for saturation")
-        if(!check_number(luminace))
+        if(!checkNumber(luminace))
             throw new TypeError("expected number for luminace")
-        if(!check_number(alpha))
+        if(!checkNumber(alpha))
             throw new TypeError("expected number for alpha")
         this._hue = clamp(hue,0,1)
         this._saturation = clamp(saturation,0,1)
         this._luminace = clamp(luminace,0,1)
         this._alpha = clamp(alpha,0,1)
     }
-    public toArray(withAlpha = false): AnyHSLArray
+    public toArray(withAlpha = this._alpha !== 1): AnyHSLArray
     {
-        return withAlpha ? [this.hue,this.saturation,this.luminace,this.alpha] : (this.alpha == 1 ? [this.hue,this.saturation,this.luminace] : this.toArray(true))
+        return withAlpha ? [this.hue,this.saturation,this.luminace,this.alpha] : [this.hue,this.saturation,this.luminace]
     }
-    public toJSON(withAlpha = false): IAnyHSL
+    public toJSON(withAlpha = this._alpha !== 1): IAnyHSL
     {
         return withAlpha ? {
             hue: this.hue,saturation: this.saturation,luminace: this.luminace,alpha: this.alpha
-        } : (this.alpha == 1 ? {hue: this.hue,saturation: this.saturation,luminace: this.luminace} : this.toJSON(true))
+        } : {
+            hue: this.hue,saturation: this.saturation,luminace: this.luminace
+        }
     }
-    public toString(withAlpha = false): AnyHSLString
+    public toString(withAlpha = this._alpha !== 1): AnyHSLString
     {
-        return withAlpha ? `hsla(${_fix_integer(this.hue)},${_fix_integer(this.saturation)},${_fix_integer(this.luminace)},${this.alpha})` : (this.alpha == 1 ? `hsl(${_fix_integer(this.hue)},${_fix_integer(this.saturation)},${_fix_integer(this.luminace)})` : this.toString(true))
+        return withAlpha ? `hsla(${__to_byte__(this.hue)},${__to_byte__(this.saturation)},${__to_byte__(this.luminace)},${this.alpha})` : `hsl(${__to_byte__(this.hue)},${__to_byte__(this.saturation)},${__to_byte__(this.luminace)})`
     }
-    public toRGB(withAlpha = true)
+    public get [Symbol.toStringTag](): string
+    {
+        return "HSLA"
+    }
+    public [NodeJSCustomInspect](): string
+    {
+        return `HSLA <${this.toString()}>`
+    }
+    public toRGB(withAlpha?: true): RGBALike
+    public toRGB(withAlpha?: false): RGBLike
+    public toRGB(withAlpha: boolean = this._alpha !== 1): RGBLike | RGBALike
     {
         if(this.saturation == 0)
-            return new RGBAColor(this.luminace * 0xff,this.luminace * 0xff,this.luminace * 0xff,withAlpha ? this.alpha : undefined)
+            return new RGBA(this.luminace * 0xff,this.luminace * 0xff,this.luminace * 0xff,withAlpha ? this.alpha : undefined)
         const q = this.luminace < 0.5 ? this.luminace * (1 + this.saturation) : this.luminace + this.saturation - this.luminace * this.saturation
         const p = 2 * this.luminace - q
-        function _hue_2_rgb(t: number)
+        function __hue_2_rgb__(t: number): number
         {
             let _t = t
             if(_t < 0)
@@ -287,11 +375,23 @@ export class HSLColor implements IHSLA
                 return p + (q - p) * (2./3 - _t) * 6
             return p
         }
-        return new RGBAColor(_hue_2_rgb(this.hue + 1./3) * 0xff,_hue_2_rgb(this.hue) * 0xff,_hue_2_rgb(this.hue - 1./3) * 0xff,withAlpha ? this.alpha : undefined)
+        return new RGBA(__hue_2_rgb__(this.hue + 1./3) * 0xff,__hue_2_rgb__(this.hue) * 0xff,__hue_2_rgb__(this.hue - 1./3) * 0xff,withAlpha ? this.alpha : undefined)
     }
-    public invert(withAlpha = false)
+    public toRGBA(): RGBALike
     {
-        return new HSLColor(
+        return this.toRGB(true)
+    }
+    public toVec2(): Vec2Like
+    {
+        return [this.hue,this.saturation,this.luminace]
+    }
+    public toVec3(): Vec3Like
+    {
+        return [this.hue,this.saturation,this.luminace,this.alpha]
+    }
+    public invert(withAlpha: boolean = this._alpha !== 1): HSLA
+    {
+        return new HSLA(
             1 - this.hue,
             1 - this.saturation,
             1 - this.luminace,
@@ -300,41 +400,51 @@ export class HSLColor implements IHSLA
     }
 }
 
-export type AnyColor = RGBAColor | HSLColor
+export type AnyColor = RGBA | HSLA
 export type AnyColorArray = AnyRGBArray | AnyHSLArray
 export type AnyColorString = AnyRGBString | AnyHSLString
-export type IColor = IAnyRGB | IAnyHSL
-export type AnyColorLike = AnyColorArray | AnyColorString | IColor | HexLike | number
+export type IAnyColor = IAnyRGB | IAnyHSL
+export type IAnyToColor = IAnyToRGB | IAnyToHSL
+export type AnyColorLike = AnyColorArray | AnyColorString | IAnyColor | HexLike | number
+export type AnyColorArguments = AnyColorArray | [color: AnyColorLike]
 
-export function resolveColor(a: unknown,preferHSL: boolean = false): AnyColor
+export namespace AnyColor
 {
-    const value = castColor(a,preferHSL)
-    if(typeof value != "undefined")
-        return value
-    throw new ResolveError("Color",a)
-}
-
-export function castColor(a: unknown,preferHSL: boolean = false): AnyColor | undefined
-{
-    const results: Array<AnyColor | undefined> = []
-    try
+    export function cast(a: unknown,preferHSL: boolean = false): AnyColor | undefined
     {
-        const rgba = RGBAColor.resolve(a)
-        results.push(rgba)
+        const results: Array<AnyColor | undefined> = []
+        try
+        {
+            const rgba = RGBA.resolve(a)
+            results.push(rgba)
+        }
+        catch(e){}
+        try
+        {
+            const hsla = HSLA.resolve(a)
+            results.push(hsla)
+        }
+        catch(e){}
+        let offset = preferHSL ? 1 : 0
+        const firstItem = results[offset]
+        if(firstItem)
+            return firstItem
+        const secondItem = results[offset+1]
+        if(secondItem)
+            return secondItem
+        return undefined
     }
-    catch(e){}
-    try
+    export function resolve(a: unknown,preferHSL: boolean = false): AnyColor
     {
-        const hsla = HSLColor.resolve(a)
-        results.push(hsla)
+        const value = cast(a,preferHSL)
+        if(typeof value != "undefined")
+            return value
+        throw new ResolveError("Color",a)
     }
-    catch(e){}
-    let offset = preferHSL ? 1 : 0
-    const firstItem = results[offset]
-    if(firstItem)
-        return firstItem
-    const secondItem = results[offset+1]
-    if(secondItem)
-        return secondItem
-    return undefined
+    export function resolveArgs(args: AnyColorArguments,preferHSL: boolean = false): AnyColor
+    {
+        if(checkNumberArray(args,3) || checkNumberArray(args,4))
+            return resolve(args,preferHSL)
+        return resolve(args[0],preferHSL)
+    }
 }

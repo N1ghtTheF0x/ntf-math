@@ -1,7 +1,9 @@
 import { ResolveError } from "../common/error"
 import { Vec3Like, Vec3, Vec3Arguments } from "../vectors/vec3"
-import { check_number_array, check_number, check_string, check_string_array, has_property, check_array } from "../common/types"
-import { Mat3Like } from "./mat3"
+import { checkNumberArray, checkNumber, checkString, checkStringArray, hasProperty, checkArray, NodeJSCustomInspect } from "../common/types"
+import { IToMat3, Mat3Like } from "./mat3"
+import { BoundingBox, BoundingBoxLike } from "../geometry/bbox"
+import { IToString } from "../common/string"
 
 export interface IMat4
 {
@@ -25,12 +27,19 @@ export interface IMat4
     m32: number
     m33: number
 }
+
+export interface IToMat4
+{
+    toMat4(): Mat4Like
+}
+
 export type Mat4Array = [number,number,number,number,number,number,number,number,number,number,number,number,number,number,number,number]
 export type Mat4NestedArray = [[number,number,number,number],[number,number,number,number],[number,number,number,number],[number,number,number,number]]
 export type Mat4String = `${number},${number},${number},${number},${number},${number},${number},${number},${number},${number},${number},${number},${number},${number},${number},${number}`
-export type Mat4Like = IMat4 | Mat4Array | Mat4NestedArray | Mat4String | number
+export type Mat4Like = IMat4 | Mat4Array | Mat4NestedArray | Mat4String | number | IToMat4
+export type Mat4Arguments = [mat: Mat4Like] | Mat4Array
 
-export class Mat4 implements IMat4
+export class Mat4 implements IMat4, IToMat3, IToString
 {
     protected _raw: Mat4Array
     public get m00(){return this._raw[0]}
@@ -72,18 +81,24 @@ export class Mat4 implements IMat4
             return value
         throw new ResolveError("Mat4",a)
     }
+    public static resolveArgs(args: Mat4Arguments): Mat4
+    {
+        if(checkNumberArray(args,16))
+            return new this(args)
+        return this.resolve(args[0])
+    }
     public static cast(a: unknown): Mat4 | undefined
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(check_number_array(a,16))
+        if(checkNumberArray(a,16))
         {
             return new this(a as Mat4Array)
         }
-        if(check_array(a,undefined,4))
+        if(checkArray(a,undefined,4))
         {
             const row0 = a[0], row1 = a[1], row2 = a[2], row3 = a[3]
-            if(check_number_array(row0,4) && check_number_array(row1,4) && check_number_array(row2,4) && check_number_array(row3,4))
+            if(checkNumberArray(row0,4) && checkNumberArray(row1,4) && checkNumberArray(row2,4) && checkNumberArray(row3,4))
                 return new this([
                     row0[0],row0[1],row0[2],row0[3],
                     row1[0],row1[1],row1[2],row1[3],
@@ -91,17 +106,19 @@ export class Mat4 implements IMat4
                     row3[0],row3[1],row3[2],row3[3]
                 ])
         }
-        if(check_string(a))
+        if(checkString(a))
         {
             const parts = a.split(",")
-            if(check_string_array(parts,16))
+            if(checkStringArray(parts,16))
                 return this.cast(parts.map((i) => parseFloat(i)))
         }
+        if(hasProperty(a,"toMat4","function"))
+            return this.cast(a.toMat4())
         if(
-            has_property(a,"m00","number") && has_property(a,"m01","number") && has_property(a,"m02","number") && has_property(a,"m03","number") &&
-            has_property(a,"m10","number") && has_property(a,"m11","number") && has_property(a,"m12","number") && has_property(a,"m13","number") &&
-            has_property(a,"m20","number") && has_property(a,"m21","number") && has_property(a,"m22","number") && has_property(a,"m23","number") &&
-            has_property(a,"m30","number") && has_property(a,"m31","number") && has_property(a,"m32","number") && has_property(a,"m33","number")
+            hasProperty(a,"m00","number") && hasProperty(a,"m01","number") && hasProperty(a,"m02","number") && hasProperty(a,"m03","number") &&
+            hasProperty(a,"m10","number") && hasProperty(a,"m11","number") && hasProperty(a,"m12","number") && hasProperty(a,"m13","number") &&
+            hasProperty(a,"m20","number") && hasProperty(a,"m21","number") && hasProperty(a,"m22","number") && hasProperty(a,"m23","number") &&
+            hasProperty(a,"m30","number") && hasProperty(a,"m31","number") && hasProperty(a,"m32","number") && hasProperty(a,"m33","number")
         )
             return new this([
                 a.m00,a.m01,a.m02,a.m03,
@@ -109,7 +126,7 @@ export class Mat4 implements IMat4
                 a.m20,a.m21,a.m22,a.m23,
                 a.m30,a.m31,a.m32,a.m33
             ])
-        if(check_number(a))
+        if(checkNumber(a))
         {
             return new this([a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a])
         }
@@ -119,18 +136,23 @@ export class Mat4 implements IMat4
     {
         return typeof this.cast(a) != "undefined"
     }
-    public static orthographic(left: number,right: number,bottom: number,top: number,near: number,far: number)
+    public static orthographic(left: number,right: number,bottom: number,top: number,near: number,far: number): Mat4
+    public static orthographic(bbox: BoundingBoxLike,near: number,far: number): Mat4
+    public static orthographic(...args: [left: number,right: number,bottom: number,top: number,near: number,far: number] | [bbox: BoundingBoxLike,near: number,far: number]): Mat4
     {
+        const bbox = checkNumberArray(args,6) ? new BoundingBox(args[0],args[1],args[2],args[3]) : BoundingBox.resolve(args[0])
+        const near = checkNumberArray(args,6) ? args[4] : args[1]
+        const far = checkNumberArray(args,6) ? args[5] : args[2]
         return new this([
-            2/(right-left),0,0,0,
-            0,2/(top-bottom),0,0,
+            2/(bbox.right-bbox.left),0,0,0,
+            0,2/(bbox.top-bbox.bottom),0,0,
             0,0,2/(near-far),0,
-            (left+right)/(left-right),
-            (bottom+top)/(bottom-top),
+            (bbox.left+bbox.right)/(bbox.left-bbox.right),
+            (bbox.bottom+bbox.top)/(bbox.bottom-bbox.top),
             (near+far)/(near-far),1
         ])
     }
-    public static perspective(fov: number,aspect: number,near: number,far: number)
+    public static perspective(fov: number,aspect: number,near: number,far: number): Mat4
     {
         const f = Math.tan(Math.PI * 0.5 - 0.5 * fov)
         const rangeInv = 1.0 / (near - far)
@@ -141,7 +163,7 @@ export class Mat4 implements IMat4
             0,0,near * far * rangeInv * 2,0
         ])
     }
-    public static pointAt(position: Vec3Like,target: Vec3Like,up: Vec3Like)
+    public static pointAt(position: Vec3Like,target: Vec3Like,up: Vec3Like): Mat4
     {
         const newForward = Vec3.resolve(target).subtract(position).normalize()
         const a = newForward.multiply(Vec3.resolve(up).dot(newForward))
@@ -157,7 +179,7 @@ export class Mat4 implements IMat4
     }
     public constructor(init: Mat4Array = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1])
     {
-        if(!check_number_array(init,16))
+        if(!checkNumberArray(init,16))
             throw new TypeError("expected a number array with 16 elements")
         this._raw = init
     }
@@ -192,7 +214,15 @@ export class Mat4 implements IMat4
     {
         return `${this.m00},${this.m01},${this.m02},${this.m03},${this.m10},${this.m11},${this.m12},${this.m13},${this.m20},${this.m21},${this.m22},${this.m23},${this.m30},${this.m31},${this.m32},${this.m33}`
     }
-    public clone()
+    public get [Symbol.toStringTag](): string
+    {
+        return "Mat4"
+    }
+    public [NodeJSCustomInspect](): string
+    {
+        return `Mat4 <${this.toString()}>`
+    }
+    public clone(): Mat4
     {
         return new Mat4([
             this.m00,this.m01,this.m02,this.m03,
@@ -201,87 +231,92 @@ export class Mat4 implements IMat4
             this.m30,this.m31,this.m32,this.m33
         ])
     }
-    public equals(mat: Mat4Like)
+    public equals(mat: Mat4Like): boolean
+    public equals(...mat: Mat4Array): boolean
+    public equals(...args: Mat4Arguments): boolean
     {
-        const m = Mat4.resolve(mat)
+        const m = Mat4.resolveArgs(args)
         for(let index = 0;index < this._raw.length;index++)
             if(this._raw[index] != m._raw[index])
                 return false
         return true
     }
-    public add(mat: Mat4Like)
+    public add(mat: Mat4Like): Mat4
+    public add(...mat: Mat4Array): Mat4
+    public add(...args: Mat4Arguments): Mat4
     {
-        const b = Mat4.resolve(mat)
+        const b = Mat4.resolveArgs(args)
         const m = new Mat4
         for(let index = 0;index < this._raw.length;index++)
             m._raw[index] = this._raw[index] + b._raw[index]
         return m
     }
-    public subtract(mat: Mat4Like)
+    public subtract(mat: Mat4Like): Mat4
+    public subtract(...mat: Mat4Array): Mat4
+    public subtract(...args: Mat4Arguments): Mat4
     {
-        const b = Mat4.resolve(mat)
+        const b = Mat4.resolveArgs(args)
         const m = new Mat4
         for(let index = 0;index < this._raw.length;index++)
             m._raw[index] = this._raw[index] - b._raw[index]
         return m
     }
     public multiply(mat: Mat4Like): Mat4
+    public multiply(...mat: Mat4Array): Mat4
     public multiply(scalar: number): Mat4
     public multiply(vec: Vec3Like): Vec3
-    public multiply(a: Mat4Like | Vec3Like | number)
+    public multiply(...args: [vec: Vec3Like] | [scalar: number] | Mat4Arguments)
     {
-        if(check_number(a))
+        if(checkNumberArray(args,1))
         {
+            const scalar = args[0]
             return new Mat4([
-                this.m00 * a,this.m01 * a,this.m02 * a,this.m03 * a,
-                this.m10 * a,this.m11 * a,this.m12 * a,this.m13 * a,
-                this.m20 * a,this.m21 * a,this.m22 * a,this.m23 * a,
-                this.m30 * a,this.m31 * a,this.m32 * a,this.m33 * a
+                this.m00 * scalar,this.m01 * scalar,this.m02 * scalar,this.m03 * scalar,
+                this.m10 * scalar,this.m11 * scalar,this.m12 * scalar,this.m13 * scalar,
+                this.m20 * scalar,this.m21 * scalar,this.m22 * scalar,this.m23 * scalar,
+                this.m30 * scalar,this.m31 * scalar,this.m32 * scalar,this.m33 * scalar
             ])
         }
-        if(Mat4.is(a))
+        const vec = Vec3.cast(args[0])
+        if(vec !== undefined)
         {
-            const b = Mat4.resolve(a)
-            return new Mat4([
-                b.m00 * this.m00 + b.m01 * this.m10 + b.m02 * this.m20 + b.m03 * this.m30,
-                b.m00 * this.m01 + b.m01 * this.m11 + b.m02 * this.m21 + b.m03 * this.m31,
-                b.m00 * this.m02 + b.m01 * this.m12 + b.m02 * this.m22 + b.m03 * this.m32,
-                b.m00 * this.m03 + b.m01 * this.m13 + b.m02 * this.m23 + b.m03 * this.m33,
-
-                b.m10 * this.m00 + b.m11 * this.m10 + b.m12 * this.m20 + b.m13 * this.m30,
-                b.m10 * this.m01 + b.m11 * this.m11 + b.m12 * this.m21 + b.m13 * this.m31,
-                b.m10 * this.m02 + b.m11 * this.m12 + b.m12 * this.m22 + b.m13 * this.m32,
-                b.m10 * this.m03 + b.m11 * this.m13 + b.m12 * this.m23 + b.m13 * this.m33,
-
-                b.m20 * this.m00 + b.m21 * this.m10 + b.m22 * this.m20 + b.m23 * this.m30,
-                b.m20 * this.m01 + b.m21 * this.m11 + b.m22 * this.m21 + b.m23 * this.m31,
-                b.m20 * this.m02 + b.m21 * this.m12 + b.m22 * this.m22 + b.m23 * this.m32,
-                b.m20 * this.m03 + b.m21 * this.m13 + b.m22 * this.m23 + b.m23 * this.m33,
-
-                b.m30 * this.m00 + b.m31 * this.m10 + b.m32 * this.m20 + b.m33 * this.m30,
-                b.m30 * this.m01 + b.m31 * this.m11 + b.m32 * this.m21 + b.m33 * this.m31,
-                b.m30 * this.m02 + b.m31 * this.m12 + b.m32 * this.m22 + b.m33 * this.m32,
-                b.m30 * this.m03 + b.m31 * this.m13 + b.m32 * this.m23 + b.m33 * this.m33,
-            ])
-        }
-        if(Vec3.is(a))
-        {
-            const b = Vec3.resolve(a)
-            const vec = new Vec3(
-                b.x * this.m00 + b.y * this.m10 + b.z * this.m20 + this.m30,
-                b.x * this.m01 + b.y * this.m11 + b.z * this.m21 + this.m31,
-                b.x * this.m02 + b.y * this.m12 + b.z * this.m22 + this.m32,
-                b.x * this.m03 + b.y * this.m13 + b.z * this.m23 + this.m33
+            const result = new Vec3(
+                vec.x * this.m00 + vec.y * this.m10 + vec.z * this.m20 + this.m30,
+                vec.x * this.m01 + vec.y * this.m11 + vec.z * this.m21 + this.m31,
+                vec.x * this.m02 + vec.y * this.m12 + vec.z * this.m22 + this.m32,
+                vec.x * this.m03 + vec.y * this.m13 + vec.z * this.m23 + this.m33
             )
-            if(vec.w != 0)
-                return vec.divide(vec.w)
-            return vec
+            if(result.w != 0)
+                return result.divide(result.w)
+            return result
         }
-        throw new ResolveError("Mat4 or Vec3 or number",a)
+        const mat = Mat4.resolveArgs(args as Mat4Arguments)
+
+        return new Mat4([
+            mat.m00 * this.m00 + mat.m01 * this.m10 + mat.m02 * this.m20 + mat.m03 * this.m30,
+            mat.m00 * this.m01 + mat.m01 * this.m11 + mat.m02 * this.m21 + mat.m03 * this.m31,
+            mat.m00 * this.m02 + mat.m01 * this.m12 + mat.m02 * this.m22 + mat.m03 * this.m32,
+            mat.m00 * this.m03 + mat.m01 * this.m13 + mat.m02 * this.m23 + mat.m03 * this.m33,
+
+            mat.m10 * this.m00 + mat.m11 * this.m10 + mat.m12 * this.m20 + mat.m13 * this.m30,
+            mat.m10 * this.m01 + mat.m11 * this.m11 + mat.m12 * this.m21 + mat.m13 * this.m31,
+            mat.m10 * this.m02 + mat.m11 * this.m12 + mat.m12 * this.m22 + mat.m13 * this.m32,
+            mat.m10 * this.m03 + mat.m11 * this.m13 + mat.m12 * this.m23 + mat.m13 * this.m33,
+
+            mat.m20 * this.m00 + mat.m21 * this.m10 + mat.m22 * this.m20 + mat.m23 * this.m30,
+            mat.m20 * this.m01 + mat.m21 * this.m11 + mat.m22 * this.m21 + mat.m23 * this.m31,
+            mat.m20 * this.m02 + mat.m21 * this.m12 + mat.m22 * this.m22 + mat.m23 * this.m32,
+            mat.m20 * this.m03 + mat.m21 * this.m13 + mat.m22 * this.m23 + mat.m23 * this.m33,
+
+            mat.m30 * this.m00 + mat.m31 * this.m10 + mat.m32 * this.m20 + mat.m33 * this.m30,
+            mat.m30 * this.m01 + mat.m31 * this.m11 + mat.m32 * this.m21 + mat.m33 * this.m31,
+            mat.m30 * this.m02 + mat.m31 * this.m12 + mat.m32 * this.m22 + mat.m33 * this.m32,
+            mat.m30 * this.m03 + mat.m31 * this.m13 + mat.m32 * this.m23 + mat.m33 * this.m33,
+        ])
     }
-    public translate(x: number,y: number,z: number): this
-    public translate(vec: Vec3Like): this
-    public translate(...args: Vec3Arguments)
+    public translate(x: number,y: number,z: number): Mat4
+    public translate(vec: Vec3Like): Mat4
+    public translate(...args: Vec3Arguments): Mat4
     {
         const vec = Vec3.resolveArgs(args)
         return this.multiply([
@@ -291,7 +326,7 @@ export class Mat4 implements IMat4
             vec.x,vec.y,vec.z,1
         ])
     }
-    public rotateX(angle: number)
+    public rotateX(angle: number): Mat4
     {
         const c = Math.cos(angle)
         const s = Math.sin(angle)
@@ -302,7 +337,7 @@ export class Mat4 implements IMat4
             0,0,0,1
         ])
     }
-    public rotateY(angle: number)
+    public rotateY(angle: number): Mat4
     {
         const c = Math.cos(angle)
         const s = Math.sin(angle)
@@ -313,7 +348,7 @@ export class Mat4 implements IMat4
             0,0,0,1
         ])
     }
-    public rotateZ(angle: number)
+    public rotateZ(angle: number): Mat4
     {
         const c = Math.cos(angle)
         const s = Math.sin(angle)
@@ -324,16 +359,16 @@ export class Mat4 implements IMat4
             0,0,0,1
         ])
     }
-    public rotate(x: number,y: number,z: number): this
-    public rotate(vec: Vec3Like): this
-    public rotate(...args: Vec3Arguments)
+    public rotate(x: number,y: number,z: number): Mat4
+    public rotate(vec: Vec3Like): Mat4
+    public rotate(...args: Vec3Arguments): Mat4
     {
         const vec = Vec3.resolveArgs(args)
         return this.rotateX(vec.x).rotateY(vec.y).rotateZ(vec.z)
     }
-    public scale(x: number,y: number,z: number): this
-    public scale(vec: Vec3Like): this
-    public scale(...args: Vec3Arguments)
+    public scale(x: number,y: number,z: number): Mat4
+    public scale(vec: Vec3Like): Mat4
+    public scale(...args: Vec3Arguments): Mat4
     {
         const vec = Vec3.resolveArgs(args)
         return this.multiply([
@@ -343,7 +378,7 @@ export class Mat4 implements IMat4
             0,0,0,1
         ])
     }
-    public inverse()
+    public inverse(): Mat4
     {
         return new Mat4([
             this.m00,this.m10,this.m20,0,

@@ -1,5 +1,5 @@
-import { sign_char } from "../common/sign"
-import { check_number } from "../common/types"
+import { signCharacter } from "../common/sign"
+import { checkNumber, NodeJSCustomInspect } from "../common/types"
 import { Vec2Like, Vec2 } from "../vectors/vec2"
 import { MathFunction } from "./function"
 
@@ -43,16 +43,16 @@ export class LinearFunction extends MathFunction<[number]>
     public constructor(m: number,b: number)
     {
         super()
-        if(!check_number(m))
+        if(!checkNumber(m))
             throw new TypeError("expected number for m")
-        if(!check_number(b))
+        if(!checkNumber(b))
             throw new TypeError("expected number for b")
         this.m = m
         this.b = b
     }
     public get(x: number): number
     {
-        if(!check_number(x))
+        if(!checkNumber(x))
             throw new TypeError("expected number for x")
         return this.m
     }
@@ -60,14 +60,22 @@ export class LinearFunction extends MathFunction<[number]>
     {
         const x = -(this.b)/this.m
         if(!isNaN(x))
-            return [new Vec2(x)]
+            return [new Vec2(x,0)]
         return []
     }
     public override toString(): LinearFunctionString
     {
-        const bsign = sign_char(this.b)
+        const bsign = signCharacter(this.b)
         if(bsign)
             return `f(x) = ${this.m} * x ${bsign} ${Math.abs(this.b)}`
         return `f(x) = ${this.m} * x`
+    }
+    public override get [Symbol.toStringTag](): string
+    {
+        return "LinearFunction"
+    }
+    public [NodeJSCustomInspect](): string
+    {
+        return `LinearFunction <${this.toString()}>`
     }
 }

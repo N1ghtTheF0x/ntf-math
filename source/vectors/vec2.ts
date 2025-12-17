@@ -1,8 +1,10 @@
 import { ResolveError } from "../common/error"
-import { check_number_array, check_number, check_string, check_string_array, has_property } from "../common/types"
-import { Size } from "../geometry/size"
-import { Vec3 } from "./vec3"
+import { checkNumberArray, checkNumber, checkString, checkStringArray, hasProperty, NodeJSCustomInspect } from "../common/types"
+import { IToSize, Size, SizeLike } from "../geometry/size"
+import { Vec3, IToVec3, Vec3Like } from "./vec3"
 import { clamp } from "../utils"
+import { HSLALike, HSLLike, IToHSL, IToHSLA, IToRGB, IToRGBA, RGBALike, RGBLike } from "../color"
+import { IToString } from "../common/string"
 
 export interface IVec2
 {
@@ -11,12 +13,17 @@ export interface IVec2
     w: number
 }
 
+export interface IToVec2
+{
+    toVec2(): Vec2Like
+}
+
 export type Vec2Array = [number,number] | [number,number,number]
 export type Vec2String = `${number},${number}` | `${number},${number};${number}`
-export type Vec2Like = IVec2 | Vec2Array | Vec2String | number
+export type Vec2Like = IVec2 | Vec2Array | Vec2String | number | IToVec2
 export type Vec2Arguments = [Vec2Like] | [number,number]
 
-export class Vec2 implements IVec2
+export class Vec2 implements IVec2, IToVec3, IToSize, IToRGB, IToRGBA, IToHSL, IToHSLA, IToString
 {
     public x: number
     public y: number
@@ -32,27 +39,29 @@ export class Vec2 implements IVec2
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(check_number_array(a,2) || check_number_array(a,3))
-            return new this(a[0],a[1],check_number(a[2]) ? a[2] : undefined)
-        if(has_property(a,"x","number") && has_property(a,"y","number"))
-            return new this(a.x,a.y,has_property(a,"w","number") ? a.w : undefined)
-        if(check_string(a))
+        if(checkNumberArray(a,2) || checkNumberArray(a,3))
+            return new this(a[0],a[1],checkNumber(a[2]) ? a[2] : undefined)
+        if(hasProperty(a,"toVec2","function"))
+            return this.cast(a.toVec2())
+        if(hasProperty(a,"x","number") && hasProperty(a,"y","number"))
+            return new this(a.x,a.y,hasProperty(a,"w","number") ? a.w : undefined)
+        if(checkString(a))
         {
             const [sxy,sw] = a.split(";")
-            if(check_string(sxy))
+            if(checkString(sxy))
             {
                 const parts = sxy.split(",")
-                if(check_string_array(parts,2))
-                    return new this(parseFloat(parts[0]),parseFloat(parts[1]),check_string(sw) ? parseFloat(sw) : undefined)
+                if(checkStringArray(parts,2))
+                    return new this(parseFloat(parts[0]),parseFloat(parts[1]),checkString(sw) ? parseFloat(sw) : undefined)
             }
         }
-        if(check_number(a))
+        if(checkNumber(a))
             return new this(a,a)
         return undefined
     }
-    public static resolveArgs(args: Vec2Arguments)
+    public static resolveArgs(args: Vec2Arguments): Vec2
     {
-        if(check_number_array(args,2))
+        if(checkNumberArray(args,2))
             return new this(args[0],args[1])
         return this.resolve(args[0])
     }
@@ -60,7 +69,7 @@ export class Vec2 implements IVec2
     {
         return typeof this.cast(a) != "undefined"
     }
-    public static fromPoints(a: Vec2Like,b: Vec2Like)
+    public static fromPoints(a: Vec2Like,b: Vec2Like): Vec2
     {
         const veca = this.resolve(a)
         const vecb = this.resolve(b)
@@ -74,21 +83,23 @@ export class Vec2 implements IVec2
             clamp(a.y,b.y,c.y)
         )
     }
-    public constructor(x: number = 0,y: number = 0,w = 1)
+    public static get zero(): Vec2 {return new this(0,0)}
+    public static get one(): Vec2 {return new this(1,1)}
+    public constructor(x: number,y: number,w: number = 1)
     {
-        if(!check_number(x))
+        if(!checkNumber(x))
             throw new TypeError("expected number for x")
-        if(!check_number(y))
+        if(!checkNumber(y))
             throw new TypeError("expected number for y")
-        if(!check_number(w))
+        if(!checkNumber(w))
             throw new TypeError("expected number for w")
         this.x = x
         this.y = y
         this.w = w
     }
-    public toArray(w = false): Vec2Array
+    public toArray(w: boolean = this.w !== 1): Vec2Array
     {
-        return w ? [this.x,this.y] : [this.x,this.y,this.w]
+        return w ? [this.x,this.y,this.w] : [this.x,this.y]
     }
     public toJSON(): IVec2
     {
@@ -96,38 +107,68 @@ export class Vec2 implements IVec2
             x: this.x,y: this.y,w: this.w
         }
     }
-    public toString(w = false): Vec2String
+    public toString(w: boolean = this.w !== 1): Vec2String
     {
-        return w ? `${this.x},${this.y}` : `${this.x},${this.y};${this.w}`
+        return w ? `${this.x},${this.y};${this.w}` : `${this.x},${this.y}`
     }
-    public toSquare()
+    public get [Symbol.toStringTag](): string
     {
-        return new Size(this.x,this.y)
+        return "Vec2"
     }
-    public toVec3(z?: number)
+    public [NodeJSCustomInspect](): string
     {
-        return new Vec3(this.x,this.y,z,this.w)
+        return `Vec2 <${this.toString()}>`
     }
-    public clone()
+    public toSize(): SizeLike
+    {
+        return [this.x,this.y]
+    }
+    public toVec3(z: number = 0): Vec3Like
+    {
+        return [this.x,this.y,z,this.w]
+    }
+    public toRGB(): RGBLike
+    {
+        const vec = this.normalize()
+        return [vec.x,vec.y,vec.w]
+    }
+    public toRGBA(): RGBALike
+    {
+        const vec = this.normalize()
+        return [vec.x,vec.y,vec.w,1]
+    }
+    public toHSL(): HSLLike
+    {
+        const vec = this.normalize()
+        return [vec.x,vec.y,vec.w]
+    }
+    public toHSLA(): HSLALike
+    {
+        const vec = this.normalize()
+        return [vec.x,vec.y,vec.w,1]
+    }
+    public clone(): Vec2
     {
         return new Vec2(this.x,this.y,this.w)
     }
-    public equals(vec: Vec2Like)
+    public equals(vec: Vec2Like): boolean
+    public equals(x: number,y: number): boolean
+    public equals(...args: Vec2Arguments): boolean
     {
-        const a = Vec2.resolve(vec)
+        const a = Vec2.resolveArgs(args)
         return this.x == a.x && this.y == a.y
     }
-    public setX(x: number)
+    public setX(x: number): this
     {
         this.x = x
         return this
     }
-    public setY(y: number)
+    public setY(y: number): this
     {
         this.y = y
         return this
     }
-    public setW(w: number)
+    public setW(w: number): this
     {
         this.w = w
         return this
@@ -168,7 +209,7 @@ export class Vec2 implements IVec2
             this.y - vec.y
         )
     }
-    public multiply(scalar: number)
+    public multiply(scalar: number): Vec2
     {
         return new Vec2(
             this.x * scalar,
@@ -190,7 +231,7 @@ export class Vec2 implements IVec2
     public divide(vec: Vec2Like): Vec2
     public divide(...args: Vec2Arguments | [number]): Vec2
     {
-        if(check_number_array(args,1))
+        if(checkNumberArray(args,1))
             return new Vec2(
                 this.x / args[0],
                 this.y / args[0]
@@ -222,38 +263,39 @@ export class Vec2 implements IVec2
         const vec = Vec2.resolveArgs(args)
         return Math.sqrt(Math.pow(vec.x - this.x,2) + Math.pow(vec.y - this.y,2))
     }
-    public length()
+    public length(): number
     {
         return Math.sqrt(this.x*this.x+this.y*this.y)
     }
-    public cartesianify()
+    public cartesianify(): Vec2
     {
         return new Vec2(
             this.x * Math.cos(this.y),
             this.x * Math.sin(this.y)
         )
     }
-    public polarify()
+    public polarify(): Vec2
     {
         return new Vec2(
             Math.sqrt(this.x*this.x+this.y*this.y),
             Math.atan(this.y/this.x)
         )
     }
-    public normalize()
+    public normalize(): Vec2
     {
         const length = this.length()
-        if(length == 0) return new Vec2
+        if(length == 0) return Vec2.zero
         return new Vec2(
             this.x / length,
-            this.y / length
+            this.y / length,
+            this.w / length
         )
     }
-    public invert()
+    public invert(): Vec2
     {
         return this.multiply(-1)
     }
-    public round()
+    public round(): Vec2
     {
         return new Vec2(Math.round(this.x),Math.round(this.y),Math.round(this.w))
     }

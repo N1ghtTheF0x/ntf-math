@@ -1,7 +1,8 @@
 import { ResolveError } from "../common/error"
-import { check_array, check_number, check_number_array, check_string, check_string_array, has_property } from "../common/types"
+import { IToString } from "../common/string"
+import { checkArray, checkNumber, checkNumberArray, checkString, checkStringArray, hasProperty, NodeJSCustomInspect } from "../common/types"
 import { Vec2Like, Vec2, Vec2Arguments } from "../vectors/vec2"
-import { Mat4Like } from "./mat4"
+import { IToMat4, Mat4Like } from "./mat4"
 
 export interface IMat3
 {
@@ -17,12 +18,19 @@ export interface IMat3
     m21: number
     m22: number
 }
+
+export interface IToMat3
+{
+    toMat3(): Mat3Like
+}
+
 export type Mat3Array = [number,number,number,number,number,number,number,number,number]
 export type Mat3NestedArray = [[number,number,number],[number,number,number],[number,number,number]]
 export type Mat3String = `${number},${number},${number},${number},${number},${number},${number},${number},${number}`
-export type Mat3Like = IMat3 | Mat3Array | Mat3NestedArray | Mat3String | number
+export type Mat3Like = IMat3 | Mat3Array | Mat3NestedArray | Mat3String | number | IToMat3
+export type Mat3Arguments = [mat: Mat3Like] | Mat3Array
 
-export class Mat3 implements IMat3
+export class Mat3 implements IMat3, IToMat4, IToString
 {
     protected _raw: Mat3Array
     public get m00(){return this._raw[0]}
@@ -50,41 +58,49 @@ export class Mat3 implements IMat3
             return value
         throw new ResolveError("Mat3",a)
     }
+    public static resolveArgs(args: Mat3Arguments): Mat3
+    {
+        if(checkNumberArray(args,9))
+            return new this(args)
+        return this.resolve(args[0])
+    }
     public static cast(a: unknown): Mat3 | undefined
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(check_number_array(a,9))
+        if(checkNumberArray(a,9))
         {
             return new this(a as Mat3Array)
         }
-        if(check_array(a,undefined,3))
+        if(checkArray(a,undefined,3))
         {
             const row0 = a[0], row1 = a[1], row2 = a[2]
-            if(check_number_array(row0,3) && check_number_array(row1,3) && check_number_array(row2,3))
+            if(checkNumberArray(row0,3) && checkNumberArray(row1,3) && checkNumberArray(row2,3))
                 return new this([
                     row0[0],row0[1],row0[2],
                     row1[0],row1[1],row1[2],
                     row2[0],row2[1],row2[2],
                 ])
         }
-        if(check_string(a))
+        if(checkString(a))
         {
             const parts = a.split(",")
-            if(check_string_array(parts,9))
+            if(checkStringArray(parts,9))
                 return this.cast(parts.map((i) => parseFloat(i)))
         }
+        if(hasProperty(a,"toMat3","function"))
+            return this.cast(a.toMat3())
         if(
-            has_property(a,"m00","number") && has_property(a,"m01","number") && has_property(a,"m02","number") &&
-            has_property(a,"m10","number") && has_property(a,"m11","number") && has_property(a,"m12","number") &&
-            has_property(a,"m20","number") && has_property(a,"m21","number") && has_property(a,"m22","number")
+            hasProperty(a,"m00","number") && hasProperty(a,"m01","number") && hasProperty(a,"m02","number") &&
+            hasProperty(a,"m10","number") && hasProperty(a,"m11","number") && hasProperty(a,"m12","number") &&
+            hasProperty(a,"m20","number") && hasProperty(a,"m21","number") && hasProperty(a,"m22","number")
         )
             return new this([
                 a.m00,a.m01,a.m02,
                 a.m10,a.m11,a.m12,
                 a.m20,a.m21,a.m22
             ])
-        if(check_number(a))
+        if(checkNumber(a))
         {
             return new this([a,a,a,a,a,a,a,a,a])
         }
@@ -104,7 +120,7 @@ export class Mat3 implements IMat3
     }
     public constructor(init: Mat3Array = [1,0,0,0,1,0,0,0,1])
     {
-        if(!check_number_array(init,9))
+        if(!checkNumberArray(init,9))
             throw new TypeError("expected a number array with 9 elements")
         this._raw = init
     }
@@ -136,7 +152,15 @@ export class Mat3 implements IMat3
     {
         return `${this.m00},${this.m01},${this.m02},${this.m10},${this.m11},${this.m12},${this.m20},${this.m21},${this.m22}`
     }
-    public clone()
+    public get [Symbol.toStringTag](): string
+    {
+        return "Mat3"
+    }
+    public [NodeJSCustomInspect](): string
+    {
+        return `Mat3 <${this.toString()}>`
+    }
+    public clone(): Mat3
     {
         return new Mat3([
             this.m00,this.m01,this.m02,
@@ -144,41 +168,48 @@ export class Mat3 implements IMat3
             this.m20,this.m21,this.m22
         ])
     }
-    public equals(mat: Mat3Like)
+    public equals(mat: Mat3Like): boolean
+    public equals(...mat: Mat3Array): boolean
+    public equals(...args: Mat3Arguments): boolean
     {
-        const m = Mat3.resolve(mat)
+        const m = Mat3.resolveArgs(args)
         for(let index = 0;index < this._raw.length;index++)
             if(this._raw[index] != m._raw[index])
                 return false
         return true
     }
-    public add(mat: Mat3Like)
+    public add(mat: Mat3Like): Mat3
+    public add(...mat: Mat3Array): Mat3
+    public add(...args: Mat3Arguments): Mat3
     {
-        const b = Mat3.resolve(mat)
+        const b = Mat3.resolveArgs(args)
         const m = new Mat3
         for(let index = 0;index < this._raw.length;index++)
             m._raw[index] = this._raw[index] + b._raw[index]
         return m
     }
-    public subtract(mat: Mat3Like)
+    public subtract(mat: Mat3Like): Mat3
+    public subtract(...mat: Mat3Array): Mat3
+    public subtract(...args: Mat3Arguments): Mat3
     {
-        const b = Mat3.resolve(mat)
+        const b = Mat3.resolveArgs(args)
         const m = new Mat3
         for(let index = 0;index < this._raw.length;index++)
             m._raw[index] = this._raw[index] - b._raw[index]
         return m
     }
     public multiply(mat: Mat3Like): Mat3
+    public multiply(...mat: Mat3Array): Mat3
     public multiply(scalar: number): Mat3
-    public multiply(a: Mat3Like | number)
+    public multiply(...args: [scalar: number] | Mat3Arguments)
     {
-        if(check_number(a))
+        if(checkNumberArray(args,1))
             return new Mat3([
-                this.m00 * a,this.m01 * a,this.m02 * a,
-                this.m10 * a,this.m11 * a,this.m12 * a,
-                this.m20 * a,this.m21 * a,this.m22 * a
+                this.m00 * args[0],this.m01 * args[0],this.m02 * args[0],
+                this.m10 * args[0],this.m11 * args[0],this.m12 * args[0],
+                this.m20 * args[0],this.m21 * args[0],this.m22 * args[0]
             ])
-        const b = Mat3.resolve(a)
+        const b = Mat3.resolveArgs(args)
         return new Mat3([
             b.m00 * this.m00 + b.m01 * this.m10 + b.m02 * this.m20,
             b.m00 * this.m01 + b.m01 * this.m11 + b.m02 * this.m21,
@@ -193,7 +224,7 @@ export class Mat3 implements IMat3
     }
     public translate(x: number,y: number): Mat3
     public translate(vec: Vec2Like): Mat3
-    public translate(...args: Vec2Arguments)
+    public translate(...args: Vec2Arguments): Mat3
     {
         const vec = Vec2.resolveArgs(args)
         return this.multiply([
@@ -202,7 +233,7 @@ export class Mat3 implements IMat3
             vec.x,vec.y,1
         ])
     }
-    public rotate(angle: number)
+    public rotate(angle: number): Mat3
     {
         const c = Math.cos(angle)
         const s = Math.sin(angle)
@@ -214,7 +245,7 @@ export class Mat3 implements IMat3
     }
     public scale(x: number,y: number): Mat3
     public scale(vec: Vec2Like): Mat3
-    public scale(...args: Vec2Arguments)
+    public scale(...args: Vec2Arguments): Mat3
     {
         const vec = Vec2.resolve(args)
         return this.multiply([
@@ -223,13 +254,13 @@ export class Mat3 implements IMat3
             0,0,1
         ])
     }
-    public determinant()
+    public determinant(): number
     {
         return this.m00 * this.m11 * this.m22 - this.m21 * this.m12 -
                this.m01 * this.m10 * this.m22 - this.m12 * this.m20 +
                this.m02 * this.m10 * this.m21 - this.m11 * this.m20
     }
-    public inverse()
+    public inverse(): Mat3
     {
         const det = this.determinant()
         return new Mat3([

@@ -1,14 +1,25 @@
-import { sign_char } from "../common/sign"
-import { check_number } from "../common/types"
+import { SignCharacter, signCharacter } from "../common/sign"
+import { checkNumber, NodeJSCustomInspect } from "../common/types"
 import { Vec2 } from "../vectors/vec2"
 import { MathFunction } from "./function"
 
+/**
+ * The various types of how a quad function can be represented
+ */
 export type QuadFunctionType = "standard"
+/**
+ * A typed map of each quad function representations
+ */
 export type QuadFunctionString = {
-    "standard": `f(x) = ${number}x^2 ${"+" | "-"} ${number}x ${"+" | "-"} ${number}` | `f(x) = ${number}x^2 ${"+" | "-"} ${number}x` | `f(x) = ${number}x^2`
+    "standard": `f(x) = ${number}x^2 ${SignCharacter} ${number}x ${SignCharacter} ${number}` | `f(x) = ${number}x^2 ${SignCharacter} ${number}x` | `f(x) = ${number}x^2`
 }
+/**
+ * A string representation of a quad function
+ */
 export type QuadFunctionStrings = QuadFunctionString[QuadFunctionType]
-
+/**
+ * A class that implements a quad function with `a`, `b` and `c`
+ */
 export class QuadFunction extends MathFunction<[number]>
 {
     public a: number
@@ -21,13 +32,13 @@ export class QuadFunction extends MathFunction<[number]>
     public constructor(a: number,b: number,c: number)
     {
         super()
-        if(!check_number(a))
+        if(!checkNumber(a))
             throw new TypeError("expected number for a")
         if(a == 0)
             throw new TypeError("a cannot be 0")
-        if(!check_number(b))
+        if(!checkNumber(b))
             throw new TypeError("expected number for b")
-        if(!check_number(c))
+        if(!checkNumber(c))
             throw new TypeError("expected number for c")
         this.a = a
         this.b = b
@@ -35,7 +46,7 @@ export class QuadFunction extends MathFunction<[number]>
     }
     public get(x: number): number
     {
-        if(!check_number(x))
+        if(!checkNumber(x))
             throw new TypeError("expected number for x")
         return this.a*x*x + this.b*x + this.c
     }
@@ -48,9 +59,9 @@ export class QuadFunction extends MathFunction<[number]>
         const n1 = (-this.b + Math.sqrt(discriminant))/(2*this.a)
 
         if(!isNaN(n0))
-            roots.push(new Vec2(n0))
+            roots.push(new Vec2(n0,0))
         if(!isNaN(n1) && n0 != n1)
-            roots.push(new Vec2(n1))
+            roots.push(new Vec2(n1,0))
 
         return roots
     }
@@ -61,8 +72,8 @@ export class QuadFunction extends MathFunction<[number]>
             default:
             case "standard":
             {
-                const bsign = sign_char(this.b)
-                const csign = sign_char(this.c)
+                const bsign = signCharacter(this.b)
+                const csign = signCharacter(this.c)
                 if(bsign && csign)
                     return `f(x) = ${this.a}x^2 ${bsign} ${Math.abs(this.b)}x ${csign} ${Math.abs(this.c)}`
                 if(bsign)
@@ -70,5 +81,13 @@ export class QuadFunction extends MathFunction<[number]>
                 return `f(x) = ${this.a}x^2`
             }
         }
+    }
+    public override get [Symbol.toStringTag](): string
+    {
+        return "QuadFunction"
+    }
+    public [NodeJSCustomInspect](): string
+    {
+        return `QuadFunction <${this.toString()}>`
     }
 }

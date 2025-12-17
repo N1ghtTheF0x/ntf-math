@@ -1,10 +1,10 @@
 import { ResolveError } from "../common/error"
 import { IToString } from "../common/string"
-import { check_number, check_number_array, check_string, check_string_array, has_property } from "../common/types"
-import { Vec2, Vec2Like } from "../vectors/vec2"
-import { Circle, CircleLike, ICircle } from "./circle"
-import { Rectangle } from "./rectangle"
-import { ISize, Size } from "./size"
+import { checkNumber, checkNumberArray, checkString, checkStringArray, hasProperty, NodeJSCustomInspect } from "../common/types"
+import { Vec2, Vec2Arguments, Vec2Like } from "../vectors/vec2"
+import { Circle, CircleArguments, CircleLike } from "./circle"
+import { IRectangle, IToRectangle, RectangleLike } from "./rectangle"
+import { SizeLike } from "./size"
 
 export interface IBoundingBox
 {
@@ -14,20 +14,31 @@ export interface IBoundingBox
     bottom: number
 }
 
+export interface IToBoundingBox
+{
+    toBoundingBox(): BoundingBoxLike
+}
+
 export type BoundingBoxArray = [number,number,number,number]
 export type BoundingBoxString = `${number},${number},${number},${number}`
-export type BoundingBoxLike = IBoundingBox | BoundingBoxArray | BoundingBoxString
+export type BoundingBoxLike = IBoundingBox | BoundingBoxArray | BoundingBoxString | IToBoundingBox
+export type BoundingBoxArgs = [bbox: BoundingBoxLike] | BoundingBoxArray
 
-export class BoundingBox implements IBoundingBox, ISize, IToString
+export class BoundingBox implements IBoundingBox, IRectangle, IToRectangle, IToString
 {
     public left: number
     public right: number
     public top: number
     public bottom: number
-    public get width(){return this.right - this.left}
-    public set width(val){this.right = this.left + val}
-    public get height(){return this.bottom - this.top}
-    public set height(val){this.bottom = this.top + val}
+    public get width(): number {return this.right - this.left}
+    public set width(val: number) {this.right = this.left + val}
+    public get height(): number {return this.bottom - this.top}
+    public set height(val: number) {this.bottom = this.top + val}
+    public get x(): number {return this.left}
+    public set x(x: number) {this.left = x}
+    public get y(): number {return this.top}
+    public set y(y: number) {this.top = y}
+    public w: number = 1
     public static resolve(a: unknown): BoundingBox
     {
         const value = this.cast(a)
@@ -35,18 +46,26 @@ export class BoundingBox implements IBoundingBox, ISize, IToString
             return value
         throw new ResolveError("BoundingBox",a)
     }
+    public static resolveArgs(args: BoundingBoxArgs): BoundingBox
+    {
+        if(checkNumberArray(args,4))
+            return new this(args[0],args[1],args[2],args[3])
+        return this.resolve(args[0])
+    }
     public static cast(a: unknown): BoundingBox | undefined
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(check_number_array(a,4))
+        if(checkNumberArray(a,4))
             return new this(a[0],a[1],a[2],a[3])
-        if(has_property(a,"left","number") && has_property(a,"right","number") && has_property(a,"top","number") && has_property(a,"bottom","number"))
+        if(hasProperty(a,"toBoundingBox","function"))
+            return this.cast(a.toBoundingBox())
+        if(hasProperty(a,"left","number") && hasProperty(a,"right","number") && hasProperty(a,"top","number") && hasProperty(a,"bottom","number"))
             return new this(a.left,a.right,a.top,a.bottom)
-        if(check_string(a))
+        if(checkString(a))
         {
             const parts = a.split(",")
-            if(check_string_array(parts,4))
+            if(checkStringArray(parts,4))
                 return this.cast(parts.map((v) => parseFloat(v)))
         }
         return undefined
@@ -57,13 +76,13 @@ export class BoundingBox implements IBoundingBox, ISize, IToString
     }
     public constructor(left: number,right: number,top: number,bottom: number)
     {
-        if(!check_number(left))
+        if(!checkNumber(left))
             throw new TypeError("expected number for left")
-        if(!check_number(right))
+        if(!checkNumber(right))
             throw new TypeError("expected number for right")
-        if(!check_number(top))
+        if(!checkNumber(top))
             throw new TypeError("expected number for top")
-        if(!check_number(bottom))
+        if(!checkNumber(bottom))
             throw new TypeError("expected number for bottom")
         this.left = left
         this.right = right
@@ -78,6 +97,14 @@ export class BoundingBox implements IBoundingBox, ISize, IToString
     {
         return `${this.left},${this.right},${this.top},${this.bottom}`
     }
+    public get [Symbol.toStringTag](): string
+    {
+        return "BoundingBox"
+    }
+    public [NodeJSCustomInspect](): string
+    {
+        return `BoundingBox <${this.toString()}>`
+    }
     public toJSON(): IBoundingBox
     {
         return {
@@ -85,36 +112,49 @@ export class BoundingBox implements IBoundingBox, ISize, IToString
             right: this.right,bottom: this.bottom
         }
     }
-    public clone()
+    public clone(): BoundingBox
     {
         return new BoundingBox(this.left,this.right,this.top,this.bottom)
     }
-    public equals(bbox: BoundingBoxLike)
+    public equals(bbox: BoundingBoxLike): boolean
+    public equals(left: number,right: number,top: number,bottom: number): boolean
+    public equals(...args: BoundingBoxArgs): boolean
     {
-        const b = BoundingBox.resolve(bbox)
-        return this.left == b.left && this.right == b.right && this.top == b.top && this.bottom == b.bottom
+        const b = BoundingBox.resolveArgs(args)
+        return this.left === b.left && this.right === b.right && this.top === b.top && this.bottom === b.bottom
     }
-    public toSquare()
+    public toSize(): SizeLike
     {
-        return new Size(this.width,this.height)
+        return [this.width,this.height]
     }
-    public toRectangle()
+    public toVec2(): Vec2Like
     {
-        return new Rectangle([this.left,this.top],[this.width,this.height])
+        return [this.left,this.top]
     }
-    public inside(a: BoundingBoxLike)
+    public toRectangle(): RectangleLike
     {
-        const bbox = BoundingBox.resolve(a)
+        return [this.left,this.top,this.width,this.height]
+    }
+    public inside(bbox: BoundingBoxLike): boolean
+    public inside(left: number,right: number,top: number,bottom: number): boolean
+    public inside(...args: BoundingBoxArgs): boolean
+    {
+        const bbox = BoundingBox.resolve(args)
         return this.right >= bbox.left && bbox.right >= this.left && this.bottom >= bbox.top && bbox.bottom >= this.top
     }
-    public insidePoint(a: Vec2Like)
+    public insidePoint(point: Vec2Like): boolean
+    public insidePoint(x: number,y: number): boolean
+    public insidePoint(...args: Vec2Arguments): boolean
     {
-        const point = Vec2.resolve(a)
+        const point = Vec2.resolveArgs(args)
         return this.left <= point.x && this.right >= point.x && this.top <= point.y && this.bottom >= point.y
     }
-    public insideCircle(a: CircleLike)
+    public insideCircle(circle: CircleLike): boolean
+    public insideCircle(x: number,y: number,radius: number): boolean
+    public insideCircle(position: Vec2Like,radius: number): boolean
+    public insideCircle(...args: CircleArguments): boolean
     {
-        const circle = Circle.resolve(a)
+        const circle = Circle.resolveArgs(args)
         const center = Vec2.resolve(circle).add(circle.radius)
         const bboxhe = new Vec2(this.width/2,this.height/2)
         const bboxcenter = new Vec2(this.left + bboxhe.x,this.top + bboxhe.y)

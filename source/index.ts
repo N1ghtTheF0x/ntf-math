@@ -5,7 +5,6 @@ export * from "./algebra/quad"
 // common
 export * from "./common/error"
 export * from "./common/sign"
-export * from "./common/string"
 export * from "./common/types"
 // crypto
 export * from "./crypto/hash"
