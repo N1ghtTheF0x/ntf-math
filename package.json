@@ -25,7 +25,7 @@
     "prebuild": "pnpm check",
     "build": "pnpm build:prod --sourcemap",
     "build:prod": "tsup",
-    "prepublishOnly": "npm build:prod"
+    "prepublishOnly": "pnpm build:prod"
   },
   "repository": {
     "type": "git",
