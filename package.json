@@ -19,11 +19,13 @@
     }
   },
   "scripts": {
-    "pretest": "pnpm run build",
+    "pretest": "pnpm build",
     "test": "tsx --tsconfig ./tests/nodejs/tsconfig.json ./tests/nodejs/test.cts",
+    "check": "tsc --noEmit",
+    "prebuild": "pnpm check",
+    "build": "pnpm build:prod --sourcemap",
     "build:prod": "tsup",
-    "build": "pnpm run build:prod --sourcemap",
-    "prepublishOnly": "npm run build:prod"
+    "prepublishOnly": "npm build:prod"
   },
   "repository": {
     "type": "git",
