@@ -2,10 +2,14 @@
 export * from "./algebra/function"
 export * from "./algebra/linear"
 export * from "./algebra/quad"
+export * from "./algebra/quaternion"
+// color
+export * from "./color/hsl"
+export * from "./color/rgb"
+export * from "./color/utils"
 // common
 export * from "./common/error"
 export * from "./common/sign"
-export * from "./common/types"
 // crypto
 export * from "./crypto/hash"
 export * from "./crypto/md2"
@@ -25,6 +29,5 @@ export * from "./vectors/vec2"
 export * from "./vectors/vec3"
 // others
 export * from "./color"
-export * from "./quaternion"
 export * from "./transform"
 export * from "./utils"

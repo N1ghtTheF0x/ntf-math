@@ -1,5 +1,5 @@
+import { checkValidNumber, NodeJSCustomInspect } from "@ntf/types"
 import { signCharacter } from "../common/sign"
-import { checkNumber, NodeJSCustomInspect } from "../common/types"
 import { Vec2Like, Vec2 } from "../vectors/vec2"
 import { MathFunction } from "./function"
 
@@ -43,18 +43,15 @@ export class LinearFunction extends MathFunction<[number]>
     public constructor(m: number,b: number)
     {
         super()
-        if(!checkNumber(m))
-            throw new TypeError("expected number for m")
-        if(!checkNumber(b))
-            throw new TypeError("expected number for b")
+        checkValidNumber(m)
+        checkValidNumber(b)
         this.m = m
         this.b = b
     }
     public get(x: number): number
     {
-        if(!checkNumber(x))
-            throw new TypeError("expected number for x")
-        return this.m
+        checkValidNumber(x)
+        return this.m * x + this.b
     }
     public roots(): Array<Vec2>
     {

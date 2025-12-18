@@ -1,5 +1,5 @@
 import { ResolveError } from "../common/error"
-import { checkNumber, checkNumberArray, checkString, hasProperty, NodeJSCustomInspect } from "../common/types"
+import { isValidNumber, isValidString, hasObjectProperty, NodeJSCustomInspect, isFixedTypeArray, checkValidNumber } from "@ntf/types"
 import { IToVec2, Vec2Like } from "../vectors/vec2"
 import { IGeometryObject } from "./object"
 
@@ -35,7 +35,7 @@ export class Size implements ISize, IGeometryObject, IToVec2
     }
     public static resolveArgs(args: SizeArguments): Size
     {
-        if(checkNumberArray(args,2))
+        if(isFixedTypeArray(args,isValidNumber,2))
             return new this(args[0],args[1])
         return this.resolve(args[0])
     }
@@ -43,19 +43,19 @@ export class Size implements ISize, IGeometryObject, IToVec2
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(checkNumberArray(a,2))
+        if(isFixedTypeArray(a,isValidNumber,2))
             return new this(a[0],a[1])
-        if(hasProperty(a,"toSize","function"))
+        if(hasObjectProperty(a,"toSize","function"))
             return this.cast(a.toSize())
-        if(hasProperty(a,"width","number") && hasProperty(a,"height","number"))
+        if(hasObjectProperty(a,"width","number") && hasObjectProperty(a,"height","number"))
             return new this(a.width,a.height)
-        if(checkString(a))
+        if(isValidString(a))
         {
             const parts = a.split("x").map((v) => parseFloat(v))
-            if(checkNumberArray(parts,2))
+            if(isFixedTypeArray(parts,isValidNumber,2))
                 return this.cast(parts)
         }
-        if(checkNumber(a))
+        if(isValidNumber(a))
             return new this(a,a)
         return undefined
     }
@@ -65,10 +65,8 @@ export class Size implements ISize, IGeometryObject, IToVec2
     }
     public constructor(width: number,height: number)
     {
-        if(!checkNumber(width))
-            throw new TypeError("expected number for width")
-        if(!checkNumber(height))
-            throw new TypeError("expected number for height")
+        checkValidNumber(width)
+        checkValidNumber(height)
         this.width = width
         this.height = height
     }

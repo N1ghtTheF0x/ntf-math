@@ -53,5 +53,8 @@
     "tsup": "latest",
     "tsx": "latest",
     "typescript": "latest"
+  },
+  "dependencies": {
+    "@ntf/types": "latest"
   }
 }

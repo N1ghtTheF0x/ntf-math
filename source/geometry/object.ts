@@ -1,4 +1,4 @@
-import { IToString } from "../common/string"
+import { IToString } from "@ntf/types"
 
 export interface IGeometryObject extends IToString
 {

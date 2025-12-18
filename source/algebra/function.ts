@@ -1,5 +1,4 @@
-import { IToString } from "../common/string"
-import { NodeJSCustomInspect } from "../common/types"
+import { IToString, NodeJSCustomInspect } from "@ntf/types"
 import { Vec2 } from "../vectors/vec2"
 
 /**

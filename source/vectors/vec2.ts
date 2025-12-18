@@ -1,10 +1,10 @@
 import { ResolveError } from "../common/error"
-import { checkNumberArray, checkNumber, checkString, checkStringArray, hasProperty, NodeJSCustomInspect } from "../common/types"
-import { IToSize, Size, SizeLike } from "../geometry/size"
-import { Vec3, IToVec3, Vec3Like } from "./vec3"
+import { isValidNumber, isValidString, hasObjectProperty, NodeJSCustomInspect, IToString, isFixedTypeArray, checkValidNumber } from "@ntf/types"
+import { IToSize, SizeLike } from "../geometry/size"
+import { IToVec3, Vec3Like } from "./vec3"
 import { clamp } from "../utils"
-import { HSLALike, HSLLike, IToHSL, IToHSLA, IToRGB, IToRGBA, RGBALike, RGBLike } from "../color"
-import { IToString } from "../common/string"
+import { IToHSL, IToHSLA, HSLLike, HSLALike } from "../color/hsl"
+import { IToRGB, IToRGBA, RGBLike, RGBALike } from "../color/rgb"
 
 export interface IVec2
 {
@@ -39,29 +39,29 @@ export class Vec2 implements IVec2, IToVec3, IToSize, IToRGB, IToRGBA, IToHSL, I
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(checkNumberArray(a,2) || checkNumberArray(a,3))
-            return new this(a[0],a[1],checkNumber(a[2]) ? a[2] : undefined)
-        if(hasProperty(a,"toVec2","function"))
+        if(isFixedTypeArray(a,isValidNumber,2) || isFixedTypeArray(a,isValidNumber,3))
+            return new this(a[0],a[1],a[2])
+        if(hasObjectProperty(a,"toVec2","function"))
             return this.cast(a.toVec2())
-        if(hasProperty(a,"x","number") && hasProperty(a,"y","number"))
-            return new this(a.x,a.y,hasProperty(a,"w","number") ? a.w : undefined)
-        if(checkString(a))
+        if(hasObjectProperty(a,"x","number") && hasObjectProperty(a,"y","number"))
+            return new this(a.x,a.y,hasObjectProperty(a,"w","number") ? a.w : undefined)
+        if(isValidString(a))
         {
             const [sxy,sw] = a.split(";")
-            if(checkString(sxy))
+            if(isValidString(sxy))
             {
                 const parts = sxy.split(",")
-                if(checkStringArray(parts,2))
-                    return new this(parseFloat(parts[0]),parseFloat(parts[1]),checkString(sw) ? parseFloat(sw) : undefined)
+                if(isFixedTypeArray(parts,isValidString,2))
+                    return new this(parseFloat(parts[0]),parseFloat(parts[1]),isValidString(sw) ? parseFloat(sw) : undefined)
             }
         }
-        if(checkNumber(a))
+        if(isValidNumber(a))
             return new this(a,a)
         return undefined
     }
     public static resolveArgs(args: Vec2Arguments): Vec2
     {
-        if(checkNumberArray(args,2))
+        if(isFixedTypeArray(args,isValidNumber,2))
             return new this(args[0],args[1])
         return this.resolve(args[0])
     }
@@ -87,12 +87,9 @@ export class Vec2 implements IVec2, IToVec3, IToSize, IToRGB, IToRGBA, IToHSL, I
     public static get one(): Vec2 {return new this(1,1)}
     public constructor(x: number,y: number,w: number = 1)
     {
-        if(!checkNumber(x))
-            throw new TypeError("expected number for x")
-        if(!checkNumber(y))
-            throw new TypeError("expected number for y")
-        if(!checkNumber(w))
-            throw new TypeError("expected number for w")
+        checkValidNumber(x)
+        checkValidNumber(y)
+        checkValidNumber(w)
         this.x = x
         this.y = y
         this.w = w
@@ -231,7 +228,7 @@ export class Vec2 implements IVec2, IToVec3, IToSize, IToRGB, IToRGBA, IToHSL, I
     public divide(vec: Vec2Like): Vec2
     public divide(...args: Vec2Arguments | [number]): Vec2
     {
-        if(checkNumberArray(args,1))
+        if(isFixedTypeArray(args,isValidNumber,1))
             return new Vec2(
                 this.x / args[0],
                 this.y / args[0]

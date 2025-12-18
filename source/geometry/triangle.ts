@@ -1,5 +1,4 @@
-import { stringify } from "../common/string"
-import { NodeJSCustomInspect } from "../common/types"
+import { NodeJSCustomInspect } from "@ntf/types"
 import { Vec2 } from "../vectors/vec2"
 import { Vec3 } from "../vectors/vec3"
 import { IGeometryObject } from "./object"
@@ -62,7 +61,7 @@ export abstract class Triangle<T> implements ITriangle
     }
     public toString(): string
     {
-        return `${stringify(this.A)}|${stringify(this.B)}|${stringify(this.C)}`
+        return `${this.A}|${this.B}|${this.C}`
     }
     public get [Symbol.toStringTag](): string
     {

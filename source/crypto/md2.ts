@@ -1,4 +1,4 @@
-import { NodeJSCustomInspect } from "../common/types"
+import { NodeJSCustomInspect } from "@ntf/types"
 import { IHash } from "./hash"
 
 const STABLE = [

@@ -1,4 +1,4 @@
-import { IToString } from "../common/string"
+import { IToString } from "@ntf/types"
 
 export const DJB2_OFFSET = 5381n
 

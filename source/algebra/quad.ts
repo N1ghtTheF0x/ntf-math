@@ -1,5 +1,5 @@
+import { checkValidNumber, ExpectedTypeError, NodeJSCustomInspect } from "@ntf/types"
 import { SignCharacter, signCharacter } from "../common/sign"
-import { checkNumber, NodeJSCustomInspect } from "../common/types"
 import { Vec2 } from "../vectors/vec2"
 import { MathFunction } from "./function"
 
@@ -32,22 +32,18 @@ export class QuadFunction extends MathFunction<[number]>
     public constructor(a: number,b: number,c: number)
     {
         super()
-        if(!checkNumber(a))
-            throw new TypeError("expected number for a")
-        if(a == 0)
-            throw new TypeError("a cannot be 0")
-        if(!checkNumber(b))
-            throw new TypeError("expected number for b")
-        if(!checkNumber(c))
-            throw new TypeError("expected number for c")
+        checkValidNumber(a)
+        if(a === 0)
+            throw new ExpectedTypeError("non-zero valid number",a)
+        checkValidNumber(b)
+        checkValidNumber(c)
         this.a = a
         this.b = b
         this.c = c
     }
     public get(x: number): number
     {
-        if(!checkNumber(x))
-            throw new TypeError("expected number for x")
+        checkValidNumber(x)
         return this.a*x*x + this.b*x + this.c
     }
     public roots(): Array<Vec2>

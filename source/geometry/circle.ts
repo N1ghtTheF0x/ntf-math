@@ -1,5 +1,5 @@
 import { ResolveError } from "../common/error"
-import { checkNumber, checkNumberArray, checkString, hasProperty, NodeJSCustomInspect } from "../common/types"
+import { isValidNumber, isValidString, hasObjectProperty, NodeJSCustomInspect, isFixedTypeArray, checkValidNumber } from "@ntf/types"
 import { IToVec2, IVec2, Vec2, Vec2Arguments, Vec2Array, Vec2Like, Vec2String } from "../vectors/vec2"
 import { IGeometryObject } from "./object"
 
@@ -39,7 +39,7 @@ export class Circle implements ICircle, IGeometryObject, IToVec2
     }
     public static resolveArgs(args: CircleArguments): Circle
     {
-        if(checkNumberArray(args,3))
+        if(isFixedTypeArray(args,isValidNumber,3))
             return new this([args[0],args[1]],args[2])
         if(args.length === 2)
             return new this(args[0],args[1])
@@ -49,19 +49,19 @@ export class Circle implements ICircle, IGeometryObject, IToVec2
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(checkNumberArray(a,3))
+        if(isFixedTypeArray(a,isValidNumber,3))
             return new this([a[0],a[1]],a[2])
-        if(checkNumberArray(a,4))
+        if(isFixedTypeArray(a,isValidNumber,4))
         {
             const c = new this([a[0],a[1]],a[3])
             c.w = a[2]
             return c
         }
-        if(hasProperty(a,"toCircle","function"))
+        if(hasObjectProperty(a,"toCircle","function"))
             return this.cast(a.toCircle())
-        if(hasProperty(a,"x","number") && hasProperty(a,"y","number") && hasProperty(a,"radius","number"))
-            return new this(hasProperty(a,"w","number") ? [a.x,a.y,a.w] : [a.x,a.y],a.radius)
-        if(checkString(a))
+        if(hasObjectProperty(a,"x","number") && hasObjectProperty(a,"y","number") && hasObjectProperty(a,"radius","number"))
+            return new this(hasObjectProperty(a,"w","number") ? [a.x,a.y,a.w] : [a.x,a.y],a.radius)
+        if(isValidString(a))
         {
             const [spos,sradius] = a.split("|")
             const pos = Vec2.cast(spos)
@@ -79,9 +79,8 @@ export class Circle implements ICircle, IGeometryObject, IToVec2
     }
     public constructor(position: Vec2Like,radius: number)
     {
+        checkValidNumber(radius)
         this.position = Vec2.resolve(position)
-        if(!checkNumber(radius))
-            throw new TypeError("expected number for radius")
         this.radius = radius
     }
     public toArray(): CircleArray

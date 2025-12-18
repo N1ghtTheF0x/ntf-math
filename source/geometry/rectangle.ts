@@ -1,5 +1,5 @@
 import { ResolveError } from "../common/error"
-import { checkNumberArray, checkString, hasProperty, NodeJSCustomInspect } from "../common/types"
+import { isValidString, hasObjectProperty, NodeJSCustomInspect, isFixedTypeArray, isValidNumber } from "@ntf/types"
 import { IToVec2, IVec2, Vec2, Vec2Array, Vec2Like, Vec2String } from "../vectors/vec2"
 import { BoundingBoxLike, IToBoundingBox } from "./bbox"
 import { IGeometryObject } from "./object"
@@ -45,7 +45,7 @@ export class Rectangle implements IRectangle, IGeometryObject, IToBoundingBox, I
     }
     public static resolveArgs(args: RectangleArguments): Rectangle
     {
-        if(checkNumberArray(args,4))
+        if(isFixedTypeArray(args,isValidNumber,4))
             return new this([args[0],args[1]],[args[2],args[3]])
         return this.resolve(args[0])
     }
@@ -53,15 +53,15 @@ export class Rectangle implements IRectangle, IGeometryObject, IToBoundingBox, I
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(checkNumberArray(a,4))
+        if(isFixedTypeArray(a,isValidNumber,4))
             return new this([a[0],a[1]],[a[2],a[3]])
-        if(checkNumberArray(a,5))
+        if(isFixedTypeArray(a,isValidNumber,5))
         {
             const rect = new this([a[0],a[1]],[a[3],a[4]])
             rect.w = a[2]
             return rect
         }
-        if(checkString(a))
+        if(isValidString(a))
         {
             const [spos,ssize] = a.split("|")
             const pos = Vec2.cast(spos)
@@ -72,12 +72,12 @@ export class Rectangle implements IRectangle, IGeometryObject, IToBoundingBox, I
             rect.w = pos.w
             return rect
         }
-        if(hasProperty(a,"toRectangle","function"))
+        if(hasObjectProperty(a,"toRectangle","function"))
             return this.cast(a.toRectangle())
-        if(hasProperty(a,"x","number") && hasProperty(a,"y","number") && hasProperty(a,"width","number") && hasProperty(a,"height","number"))
+        if(hasObjectProperty(a,"x","number") && hasObjectProperty(a,"y","number") && hasObjectProperty(a,"width","number") && hasObjectProperty(a,"height","number"))
         {
             const rect = new this([a.x,a.y],[a.width,a.height])
-            if(hasProperty(a,"w","number"))
+            if(hasObjectProperty(a,"w","number"))
                 rect.w = a.w
             return rect
         }

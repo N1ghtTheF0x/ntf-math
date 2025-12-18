@@ -1,9 +1,8 @@
-import { IToString } from "./common/string"
-import { NodeJSCustomInspect } from "./common/types"
+import { checkValidNumber, IToString, NodeJSCustomInspect } from "@ntf/types"
 import { degreeToRadian, radianToDegree } from "./geometry/angle"
 import { IToMat3, Mat3 } from "./matrices/mat3"
 import { IToMat4, Mat4 } from "./matrices/mat4"
-import { Quaternion, QuaternionLike } from "./quaternion"
+import { Quaternion, QuaternionLike } from "./algebra/quaternion"
 import { Vec2, Vec2Like } from "./vectors/vec2"
 import { Vec3, Vec3Like } from "./vectors/vec3"
 
@@ -51,6 +50,7 @@ export class Transform2D implements IToMat3, IToString
     }
     public constructor(position: Vec2Like,rotation: number,scale: Vec2Like,public parent?: Transform2D)
     {
+        checkValidNumber(rotation)
         this.localPosition = Vec2.resolve(position)
         this.localRotation = rotation
         this.localScale = Vec2.resolve(scale)

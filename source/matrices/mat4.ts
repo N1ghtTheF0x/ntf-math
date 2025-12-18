@@ -1,9 +1,8 @@
 import { ResolveError } from "../common/error"
 import { Vec3Like, Vec3, Vec3Arguments } from "../vectors/vec3"
-import { checkNumberArray, checkNumber, checkString, checkStringArray, hasProperty, checkArray, NodeJSCustomInspect } from "../common/types"
+import { isValidNumber, isValidString, hasObjectProperty, checkArray, NodeJSCustomInspect, IToString, isFixedTypeArray, isFixedArray, checkFixedTypeArray } from "@ntf/types"
 import { IToMat3, Mat3Like } from "./mat3"
 import { BoundingBox, BoundingBoxLike } from "../geometry/bbox"
-import { IToString } from "../common/string"
 
 export interface IMat4
 {
@@ -83,7 +82,7 @@ export class Mat4 implements IMat4, IToMat3, IToString
     }
     public static resolveArgs(args: Mat4Arguments): Mat4
     {
-        if(checkNumberArray(args,16))
+        if(isFixedTypeArray(args,isValidNumber,16))
             return new this(args)
         return this.resolve(args[0])
     }
@@ -91,14 +90,14 @@ export class Mat4 implements IMat4, IToMat3, IToString
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(checkNumberArray(a,16))
+        if(isFixedTypeArray(a,isValidNumber,16))
         {
             return new this(a as Mat4Array)
         }
-        if(checkArray(a,undefined,4))
+        if(isFixedArray(a,4))
         {
             const row0 = a[0], row1 = a[1], row2 = a[2], row3 = a[3]
-            if(checkNumberArray(row0,4) && checkNumberArray(row1,4) && checkNumberArray(row2,4) && checkNumberArray(row3,4))
+            if(isFixedTypeArray(row0,isValidNumber,4) && isFixedTypeArray(row1,isValidNumber,4) && isFixedTypeArray(row2,isValidNumber,4) && isFixedTypeArray(row3,isValidNumber,4))
                 return new this([
                     row0[0],row0[1],row0[2],row0[3],
                     row1[0],row1[1],row1[2],row1[3],
@@ -106,19 +105,19 @@ export class Mat4 implements IMat4, IToMat3, IToString
                     row3[0],row3[1],row3[2],row3[3]
                 ])
         }
-        if(checkString(a))
+        if(isValidString(a))
         {
             const parts = a.split(",")
-            if(checkStringArray(parts,16))
+            if(isFixedTypeArray(parts,isValidString,16))
                 return this.cast(parts.map((i) => parseFloat(i)))
         }
-        if(hasProperty(a,"toMat4","function"))
+        if(hasObjectProperty(a,"toMat4","function"))
             return this.cast(a.toMat4())
         if(
-            hasProperty(a,"m00","number") && hasProperty(a,"m01","number") && hasProperty(a,"m02","number") && hasProperty(a,"m03","number") &&
-            hasProperty(a,"m10","number") && hasProperty(a,"m11","number") && hasProperty(a,"m12","number") && hasProperty(a,"m13","number") &&
-            hasProperty(a,"m20","number") && hasProperty(a,"m21","number") && hasProperty(a,"m22","number") && hasProperty(a,"m23","number") &&
-            hasProperty(a,"m30","number") && hasProperty(a,"m31","number") && hasProperty(a,"m32","number") && hasProperty(a,"m33","number")
+            hasObjectProperty(a,"m00","number") && hasObjectProperty(a,"m01","number") && hasObjectProperty(a,"m02","number") && hasObjectProperty(a,"m03","number") &&
+            hasObjectProperty(a,"m10","number") && hasObjectProperty(a,"m11","number") && hasObjectProperty(a,"m12","number") && hasObjectProperty(a,"m13","number") &&
+            hasObjectProperty(a,"m20","number") && hasObjectProperty(a,"m21","number") && hasObjectProperty(a,"m22","number") && hasObjectProperty(a,"m23","number") &&
+            hasObjectProperty(a,"m30","number") && hasObjectProperty(a,"m31","number") && hasObjectProperty(a,"m32","number") && hasObjectProperty(a,"m33","number")
         )
             return new this([
                 a.m00,a.m01,a.m02,a.m03,
@@ -126,7 +125,7 @@ export class Mat4 implements IMat4, IToMat3, IToString
                 a.m20,a.m21,a.m22,a.m23,
                 a.m30,a.m31,a.m32,a.m33
             ])
-        if(checkNumber(a))
+        if(isValidNumber(a))
         {
             return new this([a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a])
         }
@@ -140,9 +139,9 @@ export class Mat4 implements IMat4, IToMat3, IToString
     public static orthographic(bbox: BoundingBoxLike,near: number,far: number): Mat4
     public static orthographic(...args: [left: number,right: number,bottom: number,top: number,near: number,far: number] | [bbox: BoundingBoxLike,near: number,far: number]): Mat4
     {
-        const bbox = checkNumberArray(args,6) ? new BoundingBox(args[0],args[1],args[2],args[3]) : BoundingBox.resolve(args[0])
-        const near = checkNumberArray(args,6) ? args[4] : args[1]
-        const far = checkNumberArray(args,6) ? args[5] : args[2]
+        const bbox = isFixedTypeArray(args,isValidNumber,6) ? new BoundingBox(args[0],args[1],args[2],args[3]) : BoundingBox.resolve(args[0])
+        const near = isFixedTypeArray(args,isValidNumber,6) ? args[4] : args[1]
+        const far = isFixedTypeArray(args,isValidNumber,6) ? args[5] : args[2]
         return new this([
             2/(bbox.right-bbox.left),0,0,0,
             0,2/(bbox.top-bbox.bottom),0,0,
@@ -179,8 +178,7 @@ export class Mat4 implements IMat4, IToMat3, IToString
     }
     public constructor(init: Mat4Array = [1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1])
     {
-        if(!checkNumberArray(init,16))
-            throw new TypeError("expected a number array with 16 elements")
+        checkFixedTypeArray(init,isValidNumber,16)
         this._raw = init
     }
     public toArray(): Mat4Array
@@ -267,7 +265,7 @@ export class Mat4 implements IMat4, IToMat3, IToString
     public multiply(vec: Vec3Like): Vec3
     public multiply(...args: [vec: Vec3Like] | [scalar: number] | Mat4Arguments)
     {
-        if(checkNumberArray(args,1))
+        if(isFixedTypeArray(args,isValidNumber,1))
         {
             const scalar = args[0]
             return new Mat4([

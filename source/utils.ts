@@ -1,5 +1,3 @@
-import { JavaScriptNumber } from "./common/types"
-
 /**
  * Clamp `value` between `min` and `max`
  * @param value The input value

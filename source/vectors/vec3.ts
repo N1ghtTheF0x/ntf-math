@@ -1,10 +1,10 @@
 import { ResolveError } from "../common/error"
 import { IToVec2, IVec2, Vec2Like } from "./vec2"
-import { checkNumberArray, checkNumber, checkString, checkStringArray, hasProperty, NodeJSCustomInspect } from "../common/types"
+import { isValidNumber, isValidString, hasObjectProperty, NodeJSCustomInspect, IToString, isFixedTypeArray, checkValidNumber } from "@ntf/types"
 import { clamp } from "../utils"
-import { HSLALike, HSLLike, IToHSL, IToHSLA, IToRGB, IToRGBA, RGBALike, RGBLike } from "../color"
-import { IToQuaternion, QuaternionLike } from "../quaternion"
-import { IToString } from "../common/string"
+import { IToQuaternion, QuaternionLike } from "../algebra/quaternion"
+import { IToHSL, IToHSLA, HSLLike, HSLALike } from "../color/hsl"
+import { IToRGB, IToRGBA, RGBLike, RGBALike } from "../color/rgb"
 
 export interface IVec3 extends IVec2
 {
@@ -38,27 +38,27 @@ export class Vec3 implements IVec3, IToVec2, IToRGB, IToRGBA, IToHSL, IToHSLA, I
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(checkNumberArray(a,3) || checkNumberArray(a,4))
-            return new this(a[0],a[1],a[2],checkNumber(a[3]) ? a[3] : undefined)
-        if(hasProperty(a,"x","number") && hasProperty(a,"y","number") && hasProperty(a,"z","number"))
-            return new this(a.x,a.y,a.z,hasProperty(a,"w","number") ? a.w : undefined)
-        if(checkString(a))
+        if(isFixedTypeArray(a,isValidNumber,3) || isFixedTypeArray(a,isValidNumber,4))
+            return new this(a[0],a[1],a[2],a[3])
+        if(hasObjectProperty(a,"x","number") && hasObjectProperty(a,"y","number") && hasObjectProperty(a,"z","number"))
+            return new this(a.x,a.y,a.z,hasObjectProperty(a,"w","number") ? a.w : undefined)
+        if(isValidString(a))
         {
             const [sxyz,sw] = a.split(";")
-            if(checkString(sxyz))
+            if(isValidString(sxyz))
             {
                 const parts = sxyz.split(",")
-                if(checkStringArray(parts,3))
-                    return new this(parseFloat(parts[0]),parseFloat(parts[1]),parseFloat(parts[2]),checkString(sw) ? parseFloat(sw) : undefined)
+                if(isFixedTypeArray(parts,isValidString,3))
+                    return new this(parseFloat(parts[0]),parseFloat(parts[1]),parseFloat(parts[2]),isValidString(sw) ? parseFloat(sw) : undefined)
             }
         }
-        if(checkNumber(a))
+        if(isValidNumber(a))
             return new this(a,a,a)
         return undefined
     }
     public static resolveArgs(args: Vec3Arguments): Vec3
     {
-        if(checkNumberArray(args,3))
+        if(isFixedTypeArray(args,isValidNumber,3))
             return new this(args[0],args[1],args[2])
         return this.resolve(args[0])
     }
@@ -96,14 +96,10 @@ export class Vec3 implements IVec3, IToVec2, IToRGB, IToRGBA, IToHSL, IToHSLA, I
     public static get one(): Vec3 {return new this(1,1,1)}
     public constructor(x: number,y: number,z: number,w: number = 1)
     {
-        if(!checkNumber(x))
-            throw new TypeError("expected number for x")
-        if(!checkNumber(y))
-            throw new TypeError("expected number for y")
-        if(!checkNumber(z))
-            throw new TypeError("expected number for z")
-        if(!checkNumber(w))
-            throw new TypeError("expected number for w")
+        checkValidNumber(x)
+        checkValidNumber(y)
+        checkValidNumber(z)
+        checkValidNumber(w)
         this.x = x
         this.y = y
         this.z = z
@@ -248,7 +244,7 @@ export class Vec3 implements IVec3, IToVec2, IToRGB, IToRGBA, IToHSL, IToHSLA, I
     public divide(vec: Vec3Like): Vec3
     public divide(...args: Vec3Arguments | [number]): Vec3
     {
-        if(checkNumberArray(args,1))
+        if(isFixedTypeArray(args,isValidNumber,1))
             return new Vec3(
                 this.x / args[0],
                 this.y / args[0],

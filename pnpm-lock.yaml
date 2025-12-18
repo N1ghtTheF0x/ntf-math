@@ -7,6 +7,10 @@ settings:
 importers:
 
   .:
+    dependencies:
+      '@ntf/types':
+        specifier: latest
+        version: 1.0.0
     devDependencies:
       '@types/node':
         specifier: latest
@@ -194,6 +198,9 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@ntf/types@1.0.0':
+    resolution: {integrity: sha512-cb93tQQxAsxX2MK2kkzZ9FDIey/qVA02Xaq5vCt6HWB/OZLhNGucVtN9ubGNtBpefch3+H1fjbC07IiTQJnCfQ==}
 
   '@rollup/rollup-android-arm-eabi@4.53.3':
     resolution: {integrity: sha512-mRSi+4cBjrRLoaal2PnqH82Wqyb+d3HsPUN/W+WslCXsZsyHa9ZeQQX/pQsZaVIWDkPcpV6jJ+3KLbTbgnwv8w==}
@@ -865,6 +872,8 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@ntf/types@1.0.0': {}
 
   '@rollup/rollup-android-arm-eabi@4.53.3':
     optional: true

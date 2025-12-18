@@ -1,6 +1,5 @@
+import { checkValidNumber, hasObjectProperty, isFixedTypeArray, isValidNumber, isValidString, IToString, NodeJSCustomInspect } from "@ntf/types"
 import { ResolveError } from "../common/error"
-import { IToString } from "../common/string"
-import { checkNumber, checkNumberArray, checkString, checkStringArray, hasProperty, NodeJSCustomInspect } from "../common/types"
 import { Vec2, Vec2Arguments, Vec2Like } from "../vectors/vec2"
 import { Circle, CircleArguments, CircleLike } from "./circle"
 import { IRectangle, IToRectangle, RectangleLike } from "./rectangle"
@@ -48,7 +47,7 @@ export class BoundingBox implements IBoundingBox, IRectangle, IToRectangle, IToS
     }
     public static resolveArgs(args: BoundingBoxArgs): BoundingBox
     {
-        if(checkNumberArray(args,4))
+        if(isFixedTypeArray(args,isValidNumber,4))
             return new this(args[0],args[1],args[2],args[3])
         return this.resolve(args[0])
     }
@@ -56,16 +55,16 @@ export class BoundingBox implements IBoundingBox, IRectangle, IToRectangle, IToS
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(checkNumberArray(a,4))
+        if(isFixedTypeArray(a,isValidNumber,4))
             return new this(a[0],a[1],a[2],a[3])
-        if(hasProperty(a,"toBoundingBox","function"))
+        if(hasObjectProperty(a,"toBoundingBox","function"))
             return this.cast(a.toBoundingBox())
-        if(hasProperty(a,"left","number") && hasProperty(a,"right","number") && hasProperty(a,"top","number") && hasProperty(a,"bottom","number"))
+        if(hasObjectProperty(a,"left","number") && hasObjectProperty(a,"right","number") && hasObjectProperty(a,"top","number") && hasObjectProperty(a,"bottom","number"))
             return new this(a.left,a.right,a.top,a.bottom)
-        if(checkString(a))
+        if(isValidString(a))
         {
             const parts = a.split(",")
-            if(checkStringArray(parts,4))
+            if(isFixedTypeArray(parts,isValidString,4))
                 return this.cast(parts.map((v) => parseFloat(v)))
         }
         return undefined
@@ -76,14 +75,10 @@ export class BoundingBox implements IBoundingBox, IRectangle, IToRectangle, IToS
     }
     public constructor(left: number,right: number,top: number,bottom: number)
     {
-        if(!checkNumber(left))
-            throw new TypeError("expected number for left")
-        if(!checkNumber(right))
-            throw new TypeError("expected number for right")
-        if(!checkNumber(top))
-            throw new TypeError("expected number for top")
-        if(!checkNumber(bottom))
-            throw new TypeError("expected number for bottom")
+        checkValidNumber(left)
+        checkValidNumber(right)
+        checkValidNumber(top)
+        checkValidNumber(bottom)
         this.left = left
         this.right = right
         this.top = top

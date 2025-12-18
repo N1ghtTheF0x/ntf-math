@@ -1,6 +1,5 @@
 import { ResolveError } from "../common/error"
-import { IToString } from "../common/string"
-import { checkArray, checkNumber, checkNumberArray, checkString, checkStringArray, hasProperty, NodeJSCustomInspect } from "../common/types"
+import { checkArray, isValidNumber, isValidString, hasObjectProperty, NodeJSCustomInspect, IToString, isFixedTypeArray, isFixedArray, checkFixedTypeArray } from "@ntf/types"
 import { Vec2Like, Vec2, Vec2Arguments } from "../vectors/vec2"
 import { IToMat4, Mat4Like } from "./mat4"
 
@@ -60,7 +59,7 @@ export class Mat3 implements IMat3, IToMat4, IToString
     }
     public static resolveArgs(args: Mat3Arguments): Mat3
     {
-        if(checkNumberArray(args,9))
+        if(isFixedTypeArray(args,isValidNumber,9))
             return new this(args)
         return this.resolve(args[0])
     }
@@ -68,39 +67,39 @@ export class Mat3 implements IMat3, IToMat4, IToString
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(checkNumberArray(a,9))
+        if(isFixedTypeArray(a,isValidNumber,9))
         {
             return new this(a as Mat3Array)
         }
-        if(checkArray(a,undefined,3))
+        if(isFixedArray(a,3))
         {
             const row0 = a[0], row1 = a[1], row2 = a[2]
-            if(checkNumberArray(row0,3) && checkNumberArray(row1,3) && checkNumberArray(row2,3))
+            if(isFixedTypeArray(row0,isValidNumber,3) && isFixedTypeArray(row1,isValidNumber,3) && isFixedTypeArray(row2,isValidNumber,3))
                 return new this([
                     row0[0],row0[1],row0[2],
                     row1[0],row1[1],row1[2],
                     row2[0],row2[1],row2[2],
                 ])
         }
-        if(checkString(a))
+        if(isValidString(a))
         {
             const parts = a.split(",")
-            if(checkStringArray(parts,9))
+            if(isFixedTypeArray(parts,isValidString,9))
                 return this.cast(parts.map((i) => parseFloat(i)))
         }
-        if(hasProperty(a,"toMat3","function"))
+        if(hasObjectProperty(a,"toMat3","function"))
             return this.cast(a.toMat3())
         if(
-            hasProperty(a,"m00","number") && hasProperty(a,"m01","number") && hasProperty(a,"m02","number") &&
-            hasProperty(a,"m10","number") && hasProperty(a,"m11","number") && hasProperty(a,"m12","number") &&
-            hasProperty(a,"m20","number") && hasProperty(a,"m21","number") && hasProperty(a,"m22","number")
+            hasObjectProperty(a,"m00","number") && hasObjectProperty(a,"m01","number") && hasObjectProperty(a,"m02","number") &&
+            hasObjectProperty(a,"m10","number") && hasObjectProperty(a,"m11","number") && hasObjectProperty(a,"m12","number") &&
+            hasObjectProperty(a,"m20","number") && hasObjectProperty(a,"m21","number") && hasObjectProperty(a,"m22","number")
         )
             return new this([
                 a.m00,a.m01,a.m02,
                 a.m10,a.m11,a.m12,
                 a.m20,a.m21,a.m22
             ])
-        if(checkNumber(a))
+        if(isValidNumber(a))
         {
             return new this([a,a,a,a,a,a,a,a,a])
         }
@@ -120,8 +119,7 @@ export class Mat3 implements IMat3, IToMat4, IToString
     }
     public constructor(init: Mat3Array = [1,0,0,0,1,0,0,0,1])
     {
-        if(!checkNumberArray(init,9))
-            throw new TypeError("expected a number array with 9 elements")
+        checkFixedTypeArray(init,isValidNumber,9)
         this._raw = init
     }
     public toArray(): Mat3Array
@@ -203,7 +201,7 @@ export class Mat3 implements IMat3, IToMat4, IToString
     public multiply(scalar: number): Mat3
     public multiply(...args: [scalar: number] | Mat3Arguments)
     {
-        if(checkNumberArray(args,1))
+        if(isFixedTypeArray(args,isValidNumber,1))
             return new Mat3([
                 this.m00 * args[0],this.m01 * args[0],this.m02 * args[0],
                 this.m10 * args[0],this.m11 * args[0],this.m12 * args[0],
