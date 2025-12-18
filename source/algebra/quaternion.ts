@@ -1,10 +1,9 @@
-import { ResolveError } from "./common/error"
-import { IToString } from "./common/string"
-import { checkNumber, checkNumberArray, checkString, checkStringArray, hasProperty, NodeJSCustomInspect } from "./common/types"
-import { IToMat3, Mat3, Mat3Like } from "./matrices/mat3"
-import { IToMat4, Mat4, Mat4Like } from "./matrices/mat4"
-import { EPSILON, logHypot } from "./utils"
-import { IToVec3, Vec3, Vec3Arguments, Vec3Like } from "./vectors/vec3"
+import { ResolveError } from "../common/error"
+import { isValidNumber, isValidString, hasObjectProperty, NodeJSCustomInspect, IToString, isFixedTypeArray, checkValidNumber } from "@ntf/types"
+import { IToMat3, Mat3Like } from "../matrices/mat3"
+import { IToMat4, Mat4Like } from "../matrices/mat4"
+import { EPSILON, logHypot } from "../utils"
+import { IToVec3, Vec3, Vec3Arguments, Vec3Like } from "../vectors/vec3"
 
 export interface IQuaternion
 {
@@ -43,7 +42,7 @@ export class Quaternion implements IToVec3, IToMat3, IToMat4, IToString
     }
     public static resolveArgs(args: QuaternionArguments): Quaternion
     {
-        if(checkNumberArray(args,4))
+        if(isFixedTypeArray(args,isValidNumber,4))
             return new this(args[0],args[1],args[2],args[3])
         return this.resolve(args[0])
     }
@@ -51,16 +50,16 @@ export class Quaternion implements IToVec3, IToMat3, IToMat4, IToString
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(checkNumberArray(a,4))
+        if(isFixedTypeArray(a,isValidNumber,4))
             return new this(a[0],a[1],a[2],a[3])
-        if(hasProperty(a,"toQuaternion","function"))
+        if(hasObjectProperty(a,"toQuaternion","function"))
             return this.cast(a.toQuaternion())
-        if(hasProperty(a,"w","number") && hasProperty(a,"x","number") && hasProperty(a,"y","number") && hasProperty(a,"z","number"))
+        if(hasObjectProperty(a,"w","number") && hasObjectProperty(a,"x","number") && hasObjectProperty(a,"y","number") && hasObjectProperty(a,"z","number"))
             return new this(a.w,a.x,a.y,a.z)
-        if(checkString(a))
+        if(isValidString(a))
         {
             const parts = a.replaceAll(" ","").split("+")
-            if(checkStringArray(parts,4))
+            if(isFixedTypeArray(parts,isValidString,4))
             {
                 const [sw,sxi,syj,szk] = parts
                 if(sxi.endsWith("i") && syj.endsWith("j") && szk.endsWith("k"))
@@ -78,8 +77,8 @@ export class Quaternion implements IToVec3, IToMat3, IToMat4, IToString
     public static fromAxisAngle(x: number,y: number,z: number,angle: number): Quaternion
     public static fromAxisAngle(...args: [æxis: Vec3Like,angle: number] | [x: number,y: number,z: number,angle: number])
     {
-        const axis = checkNumberArray(args,4) ? new Vec3(args[0],args[1],args[2]) : Vec3.resolve(args[0])
-        const angle = checkNumberArray(args,4) ? args[3] : args[1]
+        const axis = isFixedTypeArray(args,isValidNumber,4) ? new Vec3(args[0],args[1],args[2]) : Vec3.resolve(args[0])
+        const angle = isFixedTypeArray(args,isValidNumber,4) ? args[3] : args[1]
         const vec = Vec3.resolve(axis)
         const hangle = angle * 0.5
         const sin2 = Math.sin(hangle)
@@ -105,14 +104,10 @@ export class Quaternion implements IToVec3, IToMat3, IToMat4, IToString
     public static get zero(): Quaternion {return new Quaternion(0,0,0,0)}
     public constructor(w: number,x: number,y: number,z: number)
     {
-        if(!checkNumber(w))
-            throw new TypeError("expected number for w")
-        if(!checkNumber(x))
-            throw new TypeError("expected number for x")
-        if(!checkNumber(y))
-            throw new TypeError("expected number for x")
-        if(!checkNumber(z))
-            throw new TypeError("expected number for w")
+        checkValidNumber(w)
+        checkValidNumber(x)
+        checkValidNumber(y)
+        checkValidNumber(z)
         this.w = w
         this.x = x
         this.y = y
