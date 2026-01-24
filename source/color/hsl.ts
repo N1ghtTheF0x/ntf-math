@@ -1,10 +1,10 @@
-import { IToString, isFixedTypeArray, isValidNumber, hasObjectProperty, isValidString, checkValidNumber, NodeJSCustomInspect } from "@ntf/types"
+import { IToString, isFixedTypeArray, isValidNumber, hasTypedProperty, isValidString, checkValidNumber, NodeJSCustomInspect } from "@ntf/types"
 import { ResolveError } from "../common/error"
 import { clamp } from "../utils"
 import { IToVec2, Vec2Like } from "../vectors/vec2"
 import { IToVec3, Vec3Like } from "../vectors/vec3"
 import { IToRGB, IToRGBA, RGBALike, RGBLike, RGBA } from "./rgb"
-import { numberToRGB, numberToRGBA } from "./utils"
+import { hasHexNumberAlpha, HexColor, hexNumberToRGB, hexNumberToRGBA, isHexNumber, numberToRGB, numberToRGBA } from "./utils"
 
 export interface IHSL
 {
@@ -20,7 +20,7 @@ export interface IToHSL
 
 export type HSLArray = [number,number,number]
 export type HSLString = `hsl(${number},${number},${number})`
-export type HSLLike = IHSL | HSLArray | HSLString | IToHSL
+export type HSLLike = IHSL | HSLArray | HSLString | IToHSL | HexColor
 export type HSLArguments = HSLArray | [hsl: HSLLike]
 
 export interface IHSLA extends IHSL
@@ -77,13 +77,13 @@ export class HSLA implements IHSLA, IToRGB, IToRGBA, IToVec2, IToVec3, IToString
         if(a == null || typeof a == "undefined")
             return undefined
         if(isFixedTypeArray(a,isValidNumber,3) || isFixedTypeArray(a,isValidNumber,4))
-            return new this(a[0],a[1],a[2],a[3])
-        if(hasObjectProperty(a,"toHSL","function"))
+            return new this(a[0]!,a[1]!,a[2]!,a[3]!)
+        if(hasTypedProperty(a,"toHSL","function"))
             return this.cast(a.toHSL())
-        if(hasObjectProperty(a,"toHSLA","function"))
+        if(hasTypedProperty(a,"toHSLA","function"))
             return this.cast(a.toHSLA())
-        if(hasObjectProperty(a,"hue","number") && hasObjectProperty(a,"saturation","number") && hasObjectProperty(a,"luminace","number"))
-            return new this(a.hue,a.saturation,a.luminace,hasObjectProperty(a,"alpha","number") ? a.alpha : undefined)
+        if(hasTypedProperty(a,"hue","number") && hasTypedProperty(a,"saturation","number") && hasTypedProperty(a,"luminace","number"))
+            return new this(a.hue,a.saturation,a.luminace,hasTypedProperty(a,"alpha","number") ? a.alpha : undefined)
         if(isValidNumber(a))
         {
             const hex = a.toString(16)
@@ -99,6 +99,11 @@ export class HSLA implements IHSLA, IToRGB, IToRGBA, IToVec2, IToVec3, IToString
                 const parts = a.substring(offset,a.indexOf(")",offset)).split(",")
                 if(isFixedTypeArray(parts,isValidString,hasAlpha ? 4 : 3))
                     return this.cast(parts.map((v) => parseInt(v) / 0xff))
+            }
+            if(isHexNumber(a))
+            {
+                const convert = hasHexNumberAlpha(a) ? hexNumberToRGBA : hexNumberToRGB
+                return this.cast(convert(a))
             }
         }
         return undefined

@@ -1,5 +1,6 @@
 import { HSLA, AnyHSLArray, AnyHSLString, IAnyHSL, IAnyToHSL } from "./color/hsl"
 import { RGBA, AnyRGBArray, AnyRGBString, IAnyRGB, IAnyToRGB } from "./color/rgb"
+import { HexColor } from "./color/utils"
 import { ResolveError } from "./common/error"
 import { isValidNumber, isFixedTypeArray } from "@ntf/types"
 
@@ -8,7 +9,7 @@ export type AnyColorArray = AnyRGBArray | AnyHSLArray
 export type AnyColorString = AnyRGBString | AnyHSLString
 export type IAnyColor = IAnyRGB | IAnyHSL
 export type IAnyToColor = IAnyToRGB | IAnyToHSL
-export type AnyColorLike = AnyColorArray | AnyColorString | IAnyColor | number
+export type AnyColorLike = AnyColorArray | AnyColorString | IAnyColor | number | HexColor
 export type AnyColorArguments = AnyColorArray | [color: AnyColorLike]
 
 export namespace AnyColor

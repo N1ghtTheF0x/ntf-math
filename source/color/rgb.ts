@@ -1,10 +1,10 @@
-import { IToString, isFixedTypeArray, isValidNumber, hasObjectProperty, isValidString, checkValidNumber, NodeJSCustomInspect } from "@ntf/types"
+import { IToString, isFixedTypeArray, isValidNumber, hasTypedProperty, isValidString, checkValidNumber, NodeJSCustomInspect } from "@ntf/types"
 import { ResolveError } from "../common/error"
 import { clamp } from "../utils"
 import { IToVec2, Vec2Like } from "../vectors/vec2"
 import { IToVec3, Vec3Like } from "../vectors/vec3"
 import { IToHSL, IToHSLA, HSLLike, HSLALike, HSLA } from "./hsl"
-import { numberToRGB, numberToRGBA } from "./utils"
+import { hasHexNumberAlpha, HexColor, hexNumberToRGB, hexNumberToRGBA, isHexNumber, numberToRGB, numberToRGBA } from "./utils"
 
 export interface IRGB
 {
@@ -35,14 +35,14 @@ export interface IToRGBA
 
 export type RGBAArray = [number,number,number,number]
 export type RGBAString = `rgba(${number},${number},${number},${number})`
-export type RGBALike = IRBBA | RGBAArray | RGBAString | IToRGBA
+export type RGBALike = IRBBA | RGBAArray | RGBAString | IToRGBA | HexColor
 export type RGBAArguments = [rgba: RGBALike] | RGBAArray
 
 export type IAnyRGB = IRGB | IRBBA
 export type AnyRGBArray = RGBArray | RGBAArray
 export type AnyRGBString = RGBString | RGBAString
 export type IAnyToRGB = IToRGB | IToRGBA
-export type AnyRGBLike = IAnyRGB | AnyRGBArray | AnyRGBString | number | IAnyToRGB
+export type AnyRGBLike = IAnyRGB | AnyRGBArray | AnyRGBString | number | IAnyToRGB | HexColor
 export type AnyRGBArguments = RGBArguments | RGBAArguments
 
 export class RGBA implements IRBBA, IToVec2, IToVec3, IToHSL, IToHSLA, IToString
@@ -77,13 +77,13 @@ export class RGBA implements IRBBA, IToVec2, IToVec3, IToHSL, IToHSLA, IToString
         if(a == null || typeof a == "undefined")
             return undefined
         if(isFixedTypeArray(a,isValidNumber,3) || isFixedTypeArray(a,isValidNumber,4))
-            return new this(a[0],a[1],a[2],a[3])
-        if(hasObjectProperty(a,"toRGB","function"))
+            return new this(a[0]!,a[1]!,a[2]!,a[3]!)
+        if(hasTypedProperty(a,"toRGB","function"))
             return this.cast(a.toRGB())
-        if(hasObjectProperty(a,"toRGBA","function"))
+        if(hasTypedProperty(a,"toRGBA","function"))
             return this.cast(a.toRGBA())
-        if(hasObjectProperty(a,"red","number") && hasObjectProperty(a,"green","number") && hasObjectProperty(a,"blue","number"))
-            return new this(a.red,a.green,a.blue,hasObjectProperty(a,"alpha","number") ? a.alpha : undefined)
+        if(hasTypedProperty(a,"red","number") && hasTypedProperty(a,"green","number") && hasTypedProperty(a,"blue","number"))
+            return new this(a.red,a.green,a.blue,hasTypedProperty(a,"alpha","number") ? a.alpha : undefined)
         if(isValidNumber(a))
         {
             const hex = a.toString(16)
@@ -99,6 +99,11 @@ export class RGBA implements IRBBA, IToVec2, IToVec3, IToHSL, IToHSLA, IToString
                 const parts = a.substring(offset,a.indexOf(")",offset)).split(",")
                 if(isFixedTypeArray(parts,isValidString,hasAlpha ? 4 : 3))
                     return this.cast(parts.map((v) => parseInt(v) / 0xff))
+            }
+            if(isHexNumber(a))
+            {
+                const convert = hasHexNumberAlpha(a) ? hexNumberToRGBA : hexNumberToRGB
+                return this.cast(convert(a))
             }
         }
         return undefined
