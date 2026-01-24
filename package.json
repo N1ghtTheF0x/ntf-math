@@ -1,6 +1,6 @@
 {
   "name": "@ntf/math",
-  "version": "1.4.1",
+  "version": "1.4.2",
   "description": "Another math library",
   "files": [
     "dist"
@@ -19,12 +19,12 @@
     }
   },
   "scripts": {
-    "pretest": "pnpm build",
-    "test": "tsx --tsconfig ./tests/nodejs/tsconfig.json ./tests/nodejs/test.cts",
+    "pretest": "pnpm run build",
+    "test": "node tests/test.mjs",
     "check": "tsc --noEmit",
     "prebuild": "pnpm check",
-    "build": "pnpm build:prod --sourcemap",
-    "build:prod": "tsup",
+    "build": "node build.mjs",
+    "build:prod": "pnpm build prod",
     "prepublishOnly": "pnpm build:prod"
   },
   "repository": {
@@ -48,10 +48,7 @@
   },
   "homepage": "https://github.com/N1ghtTheF0x/ntf-math#readme",
   "devDependencies": {
-    "@types/node": "latest",
-    "express": "latest",
-    "tsup": "latest",
-    "tsx": "latest",
+    "tsdown": "latest",
     "typescript": "latest"
   },
   "dependencies": {

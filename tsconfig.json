@@ -13,6 +13,10 @@
         "noImplicitReturns": true,
         "noImplicitAny": true,
         "noImplicitThis": true,
-        "isolatedModules": true
+        "isolatedModules": true,
+        "noUncheckedIndexedAccess": true,
+        "noUncheckedSideEffectImports": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true
     }
 }
