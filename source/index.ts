@@ -12,7 +12,6 @@ export * from "./common/error"
 export * from "./common/sign"
 // crypto
 export * from "./crypto/hash"
-export * from "./crypto/md2"
 // geometry
 export * from "./geometry/angle"
 export * from "./geometry/bbox"
