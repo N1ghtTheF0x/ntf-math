@@ -20,7 +20,7 @@ export interface IToQuaternion
 
 export type QuaternionArray = [number,number,number,number]
 export type QuaternionString = `${number} + ${number}i + ${number}j + ${number}k`
-export type QuaternionLike = IQuaternion | QuaternionArray | QuaternionString | IToQuaternion
+export type QuaternionLike = IQuaternion | QuaternionArray | QuaternionString | IToQuaternion | number
 export type QuaternionArguments = QuaternionArray | [quaternion: QuaternionLike]
 
 export class Quaternion implements IToVec3, IToMat3, IToMat4, IToString
@@ -50,12 +50,6 @@ export class Quaternion implements IToVec3, IToMat3, IToMat4, IToString
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(isFixedTypeArray(a,isValidNumber,4))
-            return new this(a[0]!,a[1]!,a[2]!,a[3]!)
-        if(hasTypedProperty(a,"toQuaternion","function"))
-            return this.cast(a.toQuaternion())
-        if(hasTypedProperty(a,"w","number") && hasTypedProperty(a,"x","number") && hasTypedProperty(a,"y","number") && hasTypedProperty(a,"z","number"))
-            return new this(a.w,a.x,a.y,a.z)
         if(isValidString(a))
         {
             const parts = a.replaceAll(" ","").split("+")
@@ -71,6 +65,14 @@ export class Quaternion implements IToVec3, IToMat3, IToMat4, IToString
                     ])
             }
         }
+        if(isValidNumber(a))
+            return new this(a,a,a,a)
+        if(isFixedTypeArray(a,isValidNumber,4))
+            return new this(a[0]!,a[1]!,a[2]!,a[3]!)
+        if(hasTypedProperty(a,"toQuaternion","function"))
+            return this.cast(a.toQuaternion())
+        if(hasTypedProperty(a,"w","number") && hasTypedProperty(a,"x","number") && hasTypedProperty(a,"y","number") && hasTypedProperty(a,"z","number"))
+            return new this(a.w,a.x,a.y,a.z)
         return undefined
     }
     public static fromAxisAngle(axis: Vec3Like,angle: number): Quaternion

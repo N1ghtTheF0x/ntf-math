@@ -43,12 +43,6 @@ export class Size implements ISize, IGeometryObject, IToVec2
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(isFixedTypeArray(a,isValidNumber,2))
-            return new this(a[0]!,a[1]!)
-        if(hasTypedProperty(a,"toSize","function"))
-            return this.cast(a.toSize())
-        if(hasTypedProperty(a,"width","number") && hasTypedProperty(a,"height","number"))
-            return new this(a.width,a.height)
         if(isValidString(a))
         {
             const parts = a.split("x").map((v) => parseFloat(v))
@@ -57,6 +51,12 @@ export class Size implements ISize, IGeometryObject, IToVec2
         }
         if(isValidNumber(a))
             return new this(a,a)
+        if(isFixedTypeArray(a,isValidNumber,2))
+            return new this(a[0]!,a[1]!)
+        if(hasTypedProperty(a,"toSize","function"))
+            return this.cast(a.toSize())
+        if(hasTypedProperty(a,"width","number") && hasTypedProperty(a,"height","number"))
+            return new this(a.width,a.height)
         return undefined
     }
     public static is(a: unknown): a is SizeLike

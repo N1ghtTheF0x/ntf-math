@@ -38,10 +38,6 @@ export class Vec3 implements IVec3, IToVec2, IToRGB, IToRGBA, IToHSL, IToHSLA, I
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(isFixedTypeArray(a,isValidNumber,3) || isFixedTypeArray(a,isValidNumber,4))
-            return new this(a[0]!,a[1]!,a[2]!,a[3]!)
-        if(hasTypedProperty(a,"x","number") && hasTypedProperty(a,"y","number") && hasTypedProperty(a,"z","number"))
-            return new this(a.x,a.y,a.z,hasTypedProperty(a,"w","number") ? a.w : undefined)
         if(isValidString(a))
         {
             const [sxyz,sw] = a.split(";")
@@ -54,6 +50,10 @@ export class Vec3 implements IVec3, IToVec2, IToRGB, IToRGBA, IToHSL, IToHSLA, I
         }
         if(isValidNumber(a))
             return new this(a,a,a)
+        if(isFixedTypeArray(a,isValidNumber,3) || isFixedTypeArray(a,isValidNumber,4))
+            return new this(a[0]!,a[1]!,a[2]!,a[3]!)
+        if(hasTypedProperty(a,"x","number") && hasTypedProperty(a,"y","number") && hasTypedProperty(a,"z","number"))
+            return new this(a.x,a.y,a.z,hasTypedProperty(a,"w","number") ? a.w : undefined)
         return undefined
     }
     public static resolveArgs(args: Vec3Arguments): Vec3

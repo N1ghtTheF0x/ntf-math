@@ -39,12 +39,6 @@ export class Vec2 implements IVec2, IToVec3, IToSize, IToRGB, IToRGBA, IToHSL, I
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(isFixedTypeArray(a,isValidNumber,2) || isFixedTypeArray(a,isValidNumber,3))
-            return new this(a[0]!,a[1]!,a[2]!)
-        if(hasTypedProperty(a,"toVec2","function"))
-            return this.cast(a.toVec2())
-        if(hasTypedProperty(a,"x","number") && hasTypedProperty(a,"y","number"))
-            return new this(a.x,a.y,hasTypedProperty(a,"w","number") ? a.w : undefined)
         if(isValidString(a))
         {
             const [sxy,sw] = a.split(";")
@@ -57,6 +51,12 @@ export class Vec2 implements IVec2, IToVec3, IToSize, IToRGB, IToRGBA, IToHSL, I
         }
         if(isValidNumber(a))
             return new this(a,a)
+        if(isFixedTypeArray(a,isValidNumber,2) || isFixedTypeArray(a,isValidNumber,3))
+            return new this(a[0]!,a[1]!,a[2]!)
+        if(hasTypedProperty(a,"toVec2","function"))
+            return this.cast(a.toVec2())
+        if(hasTypedProperty(a,"x","number") && hasTypedProperty(a,"y","number"))
+            return new this(a.x,a.y,hasTypedProperty(a,"w","number") ? a.w : undefined)
         return undefined
     }
     public static resolveArgs(args: Vec2Arguments): Vec2

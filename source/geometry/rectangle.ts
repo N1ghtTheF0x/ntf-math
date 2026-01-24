@@ -53,14 +53,6 @@ export class Rectangle implements IRectangle, IGeometryObject, IToBoundingBox, I
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(isFixedTypeArray(a,isValidNumber,4))
-            return new this([a[0]!,a[1]!],[a[2]!,a[3]!])
-        if(isFixedTypeArray(a,isValidNumber,5))
-        {
-            const rect = new this([a[0]!,a[1]!],[a[3]!,a[4]!])
-            rect.w = a[2]!
-            return rect
-        }
         if(isValidString(a))
         {
             const [spos,ssize] = a.split("|")
@@ -70,6 +62,14 @@ export class Rectangle implements IRectangle, IGeometryObject, IToBoundingBox, I
                 return undefined
             const rect = new this([pos.x,pos.y],[size.width,size.height])
             rect.w = pos.w
+            return rect
+        }
+        if(isFixedTypeArray(a,isValidNumber,4))
+            return new this([a[0]!,a[1]!],[a[2]!,a[3]!])
+        if(isFixedTypeArray(a,isValidNumber,5))
+        {
+            const rect = new this([a[0]!,a[1]!],[a[3]!,a[4]!])
+            rect.w = a[2]!
             return rect
         }
         if(hasTypedProperty(a,"toRectangle","function"))

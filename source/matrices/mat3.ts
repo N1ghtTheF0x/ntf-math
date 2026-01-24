@@ -67,6 +67,16 @@ export class Mat3 implements IMat3, IToMat4, IToString
     {
         if(a == null || typeof a == "undefined")
             return undefined
+        if(isValidString(a))
+        {
+            const parts = a.split(",")
+            if(isFixedTypeArray(parts,isValidString,9))
+                return this.cast(parts.map((i) => parseFloat(i)))
+        }
+        if(isValidNumber(a))
+        {
+            return new this([a,a,a,a,a,a,a,a,a])
+        }
         if(isFixedTypeArray(a,isValidNumber,9))
         {
             return new this(a as Mat3Array)
@@ -81,12 +91,6 @@ export class Mat3 implements IMat3, IToMat4, IToString
                     row2[0]!,row2[1]!,row2[2]!,
                 ])
         }
-        if(isValidString(a))
-        {
-            const parts = a.split(",")
-            if(isFixedTypeArray(parts,isValidString,9))
-                return this.cast(parts.map((i) => parseFloat(i)))
-        }
         if(hasTypedProperty(a,"toMat3","function"))
             return this.cast(a.toMat3())
         if(
@@ -99,10 +103,6 @@ export class Mat3 implements IMat3, IToMat4, IToString
                 a.m10,a.m11,a.m12,
                 a.m20,a.m21,a.m22
             ])
-        if(isValidNumber(a))
-        {
-            return new this([a,a,a,a,a,a,a,a,a])
-        }
         return undefined
     }
     public static is(a: unknown): a is Mat3Like

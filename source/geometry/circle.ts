@@ -49,6 +49,16 @@ export class Circle implements ICircle, IGeometryObject, IToVec2
     {
         if(a == null || typeof a == "undefined")
             return undefined
+        if(isValidString(a))
+        {
+            const [spos,sradius] = a.split("|")
+            const pos = Vec2.cast(spos)
+            if(pos === undefined || sradius === undefined)
+                return undefined
+            const radius = parseFloat(sradius)
+            if(!isNaN(radius))
+                return new this(pos,radius)
+        }
         if(isFixedTypeArray(a,isValidNumber,3))
             return new this([a[0]!,a[1]!],a[2]!)
         if(isFixedTypeArray(a,isValidNumber,4))
@@ -61,16 +71,6 @@ export class Circle implements ICircle, IGeometryObject, IToVec2
             return this.cast(a.toCircle())
         if(hasTypedProperty(a,"x","number") && hasTypedProperty(a,"y","number") && hasTypedProperty(a,"radius","number"))
             return new this(hasTypedProperty(a,"w","number") ? [a.x,a.y,a.w] : [a.x,a.y],a.radius)
-        if(isValidString(a))
-        {
-            const [spos,sradius] = a.split("|")
-            const pos = Vec2.cast(spos)
-            if(pos === undefined || sradius === undefined)
-                return undefined
-            const radius = parseFloat(sradius)
-            if(!isNaN(radius))
-                return new this(pos,radius)
-        }
         return undefined
     }
     public static is(a: unknown): a is CircleLike

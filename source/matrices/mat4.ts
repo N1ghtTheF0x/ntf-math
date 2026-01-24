@@ -90,6 +90,16 @@ export class Mat4 implements IMat4, IToMat3, IToString
     {
         if(a == null || typeof a == "undefined")
             return undefined
+        if(isValidString(a))
+        {
+            const parts = a.split(",")
+            if(isFixedTypeArray(parts,isValidString,16))
+                return this.cast(parts.map((i) => parseFloat(i)))
+        }
+        if(isValidNumber(a))
+        {
+            return new this([a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a])
+        }
         if(isFixedTypeArray(a,isValidNumber,16))
         {
             return new this(a as Mat4Array)
@@ -105,12 +115,6 @@ export class Mat4 implements IMat4, IToMat3, IToString
                     row3[0]!,row3[1]!,row3[2]!,row3[3]!
                 ])
         }
-        if(isValidString(a))
-        {
-            const parts = a.split(",")
-            if(isFixedTypeArray(parts,isValidString,16))
-                return this.cast(parts.map((i) => parseFloat(i)))
-        }
         if(hasTypedProperty(a,"toMat4","function"))
             return this.cast(a.toMat4())
         if(
@@ -125,10 +129,6 @@ export class Mat4 implements IMat4, IToMat3, IToString
                 a.m20,a.m21,a.m22,a.m23,
                 a.m30,a.m31,a.m32,a.m33
             ])
-        if(isValidNumber(a))
-        {
-            return new this([a,a,a,a,a,a,a,a,a,a,a,a,a,a,a,a])
-        }
         return undefined
     }
     public static is(a: unknown): a is Mat4Like

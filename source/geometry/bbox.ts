@@ -20,7 +20,7 @@ export interface IToBoundingBox
 
 export type BoundingBoxArray = [number,number,number,number]
 export type BoundingBoxString = `${number},${number},${number},${number}`
-export type BoundingBoxLike = IBoundingBox | BoundingBoxArray | BoundingBoxString | IToBoundingBox
+export type BoundingBoxLike = IBoundingBox | BoundingBoxArray | BoundingBoxString | IToBoundingBox | number
 export type BoundingBoxArgs = [bbox: BoundingBoxLike] | BoundingBoxArray
 
 export class BoundingBox implements IBoundingBox, IRectangle, IToRectangle, IToString
@@ -55,18 +55,20 @@ export class BoundingBox implements IBoundingBox, IRectangle, IToRectangle, IToS
     {
         if(a == null || typeof a == "undefined")
             return undefined
-        if(isFixedTypeArray(a,isValidNumber,4))
-            return new this(a[0]!,a[1]!,a[2]!,a[3]!)
-        if(hasTypedProperty(a,"toBoundingBox","function"))
-            return this.cast(a.toBoundingBox())
-        if(hasTypedProperty(a,"left","number") && hasTypedProperty(a,"right","number") && hasTypedProperty(a,"top","number") && hasTypedProperty(a,"bottom","number"))
-            return new this(a.left,a.right,a.top,a.bottom)
         if(isValidString(a))
         {
             const parts = a.split(",")
             if(isFixedTypeArray(parts,isValidString,4))
                 return this.cast(parts.map((v) => parseFloat(v)))
         }
+        if(isValidNumber(a))
+            return new this(a,a,a,a)
+        if(isFixedTypeArray(a,isValidNumber,4))
+            return new this(a[0]!,a[1]!,a[2]!,a[3]!)
+        if(hasTypedProperty(a,"toBoundingBox","function"))
+            return this.cast(a.toBoundingBox())
+        if(hasTypedProperty(a,"left","number") && hasTypedProperty(a,"right","number") && hasTypedProperty(a,"top","number") && hasTypedProperty(a,"bottom","number"))
+            return new this(a.left,a.right,a.top,a.bottom)
         return undefined
     }
     public static is(a: unknown): a is BoundingBoxLike
