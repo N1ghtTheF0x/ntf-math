@@ -1,6 +1,6 @@
 import { ResolveError } from "../common/error"
 import { IToVec2, IVec2, Vec2Like } from "./vec2"
-import { isValidNumber, isValidString, hasObjectProperty, NodeJSCustomInspect, IToString, isFixedTypeArray, checkValidNumber } from "@ntf/types"
+import { isValidNumber, isValidString, hasTypedProperty, NodeJSCustomInspect, IToString, isFixedTypeArray, checkValidNumber } from "@ntf/types"
 import { clamp } from "../utils"
 import { IToQuaternion, QuaternionLike } from "../algebra/quaternion"
 import { IToHSL, IToHSLA, HSLLike, HSLALike } from "../color/hsl"
@@ -39,9 +39,9 @@ export class Vec3 implements IVec3, IToVec2, IToRGB, IToRGBA, IToHSL, IToHSLA, I
         if(a == null || typeof a == "undefined")
             return undefined
         if(isFixedTypeArray(a,isValidNumber,3) || isFixedTypeArray(a,isValidNumber,4))
-            return new this(a[0],a[1],a[2],a[3])
-        if(hasObjectProperty(a,"x","number") && hasObjectProperty(a,"y","number") && hasObjectProperty(a,"z","number"))
-            return new this(a.x,a.y,a.z,hasObjectProperty(a,"w","number") ? a.w : undefined)
+            return new this(a[0]!,a[1]!,a[2]!,a[3]!)
+        if(hasTypedProperty(a,"x","number") && hasTypedProperty(a,"y","number") && hasTypedProperty(a,"z","number"))
+            return new this(a.x,a.y,a.z,hasTypedProperty(a,"w","number") ? a.w : undefined)
         if(isValidString(a))
         {
             const [sxyz,sw] = a.split(";")
@@ -49,7 +49,7 @@ export class Vec3 implements IVec3, IToVec2, IToRGB, IToRGBA, IToHSL, IToHSLA, I
             {
                 const parts = sxyz.split(",")
                 if(isFixedTypeArray(parts,isValidString,3))
-                    return new this(parseFloat(parts[0]),parseFloat(parts[1]),parseFloat(parts[2]),isValidString(sw) ? parseFloat(sw) : undefined)
+                    return new this(parseFloat(parts[0]!),parseFloat(parts[1]!),parseFloat(parts[2]!),isValidString(sw) ? parseFloat(sw) : undefined)
             }
         }
         if(isValidNumber(a))

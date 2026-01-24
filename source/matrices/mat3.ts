@@ -1,5 +1,5 @@
 import { ResolveError } from "../common/error"
-import { checkArray, isValidNumber, isValidString, hasObjectProperty, NodeJSCustomInspect, IToString, isFixedTypeArray, isFixedArray, checkFixedTypeArray } from "@ntf/types"
+import { isValidNumber, isValidString, hasTypedProperty, NodeJSCustomInspect, IToString, isFixedTypeArray, isFixedArray, checkFixedTypeArray } from "@ntf/types"
 import { Vec2Like, Vec2, Vec2Arguments } from "../vectors/vec2"
 import { IToMat4, Mat4Like } from "./mat4"
 
@@ -76,9 +76,9 @@ export class Mat3 implements IMat3, IToMat4, IToString
             const row0 = a[0], row1 = a[1], row2 = a[2]
             if(isFixedTypeArray(row0,isValidNumber,3) && isFixedTypeArray(row1,isValidNumber,3) && isFixedTypeArray(row2,isValidNumber,3))
                 return new this([
-                    row0[0],row0[1],row0[2],
-                    row1[0],row1[1],row1[2],
-                    row2[0],row2[1],row2[2],
+                    row0[0]!,row0[1]!,row0[2]!,
+                    row1[0]!,row1[1]!,row1[2]!,
+                    row2[0]!,row2[1]!,row2[2]!,
                 ])
         }
         if(isValidString(a))
@@ -87,12 +87,12 @@ export class Mat3 implements IMat3, IToMat4, IToString
             if(isFixedTypeArray(parts,isValidString,9))
                 return this.cast(parts.map((i) => parseFloat(i)))
         }
-        if(hasObjectProperty(a,"toMat3","function"))
+        if(hasTypedProperty(a,"toMat3","function"))
             return this.cast(a.toMat3())
         if(
-            hasObjectProperty(a,"m00","number") && hasObjectProperty(a,"m01","number") && hasObjectProperty(a,"m02","number") &&
-            hasObjectProperty(a,"m10","number") && hasObjectProperty(a,"m11","number") && hasObjectProperty(a,"m12","number") &&
-            hasObjectProperty(a,"m20","number") && hasObjectProperty(a,"m21","number") && hasObjectProperty(a,"m22","number")
+            hasTypedProperty(a,"m00","number") && hasTypedProperty(a,"m01","number") && hasTypedProperty(a,"m02","number") &&
+            hasTypedProperty(a,"m10","number") && hasTypedProperty(a,"m11","number") && hasTypedProperty(a,"m12","number") &&
+            hasTypedProperty(a,"m20","number") && hasTypedProperty(a,"m21","number") && hasTypedProperty(a,"m22","number")
         )
             return new this([
                 a.m00,a.m01,a.m02,
@@ -183,7 +183,7 @@ export class Mat3 implements IMat3, IToMat4, IToString
         const b = Mat3.resolveArgs(args)
         const m = new Mat3
         for(let index = 0;index < this._raw.length;index++)
-            m._raw[index] = this._raw[index] + b._raw[index]
+            m._raw[index] = this._raw[index]! + b._raw[index]!
         return m
     }
     public subtract(mat: Mat3Like): Mat3
@@ -193,7 +193,7 @@ export class Mat3 implements IMat3, IToMat4, IToString
         const b = Mat3.resolveArgs(args)
         const m = new Mat3
         for(let index = 0;index < this._raw.length;index++)
-            m._raw[index] = this._raw[index] - b._raw[index]
+            m._raw[index] = this._raw[index]! - b._raw[index]!
         return m
     }
     public multiply(mat: Mat3Like): Mat3

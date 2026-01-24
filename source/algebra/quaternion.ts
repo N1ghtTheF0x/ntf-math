@@ -1,5 +1,5 @@
 import { ResolveError } from "../common/error"
-import { isValidNumber, isValidString, hasObjectProperty, NodeJSCustomInspect, IToString, isFixedTypeArray, checkValidNumber } from "@ntf/types"
+import { isValidNumber, isValidString, hasTypedProperty, NodeJSCustomInspect, IToString, isFixedTypeArray, checkValidNumber } from "@ntf/types"
 import { IToMat3, Mat3Like } from "../matrices/mat3"
 import { IToMat4, Mat4Like } from "../matrices/mat4"
 import { EPSILON, logHypot } from "../utils"
@@ -51,10 +51,10 @@ export class Quaternion implements IToVec3, IToMat3, IToMat4, IToString
         if(a == null || typeof a == "undefined")
             return undefined
         if(isFixedTypeArray(a,isValidNumber,4))
-            return new this(a[0],a[1],a[2],a[3])
-        if(hasObjectProperty(a,"toQuaternion","function"))
+            return new this(a[0]!,a[1]!,a[2]!,a[3]!)
+        if(hasTypedProperty(a,"toQuaternion","function"))
             return this.cast(a.toQuaternion())
-        if(hasObjectProperty(a,"w","number") && hasObjectProperty(a,"x","number") && hasObjectProperty(a,"y","number") && hasObjectProperty(a,"z","number"))
+        if(hasTypedProperty(a,"w","number") && hasTypedProperty(a,"x","number") && hasTypedProperty(a,"y","number") && hasTypedProperty(a,"z","number"))
             return new this(a.w,a.x,a.y,a.z)
         if(isValidString(a))
         {
@@ -62,7 +62,7 @@ export class Quaternion implements IToVec3, IToMat3, IToMat4, IToString
             if(isFixedTypeArray(parts,isValidString,4))
             {
                 const [sw,sxi,syj,szk] = parts
-                if(sxi.endsWith("i") && syj.endsWith("j") && szk.endsWith("k"))
+                if(sw && sxi?.endsWith("i") && syj?.endsWith("j") && szk?.endsWith("k"))
                     return this.cast([
                         parseFloat(sw),
                         parseFloat(sxi.substring(0,sxi.length-1)),

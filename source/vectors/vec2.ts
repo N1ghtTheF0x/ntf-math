@@ -1,5 +1,5 @@
 import { ResolveError } from "../common/error"
-import { isValidNumber, isValidString, hasObjectProperty, NodeJSCustomInspect, IToString, isFixedTypeArray, checkValidNumber } from "@ntf/types"
+import { isValidNumber, isValidString, hasTypedProperty, NodeJSCustomInspect, IToString, isFixedTypeArray, checkValidNumber } from "@ntf/types"
 import { IToSize, SizeLike } from "../geometry/size"
 import { IToVec3, Vec3Like } from "./vec3"
 import { clamp } from "../utils"
@@ -40,11 +40,11 @@ export class Vec2 implements IVec2, IToVec3, IToSize, IToRGB, IToRGBA, IToHSL, I
         if(a == null || typeof a == "undefined")
             return undefined
         if(isFixedTypeArray(a,isValidNumber,2) || isFixedTypeArray(a,isValidNumber,3))
-            return new this(a[0],a[1],a[2])
-        if(hasObjectProperty(a,"toVec2","function"))
+            return new this(a[0]!,a[1]!,a[2]!)
+        if(hasTypedProperty(a,"toVec2","function"))
             return this.cast(a.toVec2())
-        if(hasObjectProperty(a,"x","number") && hasObjectProperty(a,"y","number"))
-            return new this(a.x,a.y,hasObjectProperty(a,"w","number") ? a.w : undefined)
+        if(hasTypedProperty(a,"x","number") && hasTypedProperty(a,"y","number"))
+            return new this(a.x,a.y,hasTypedProperty(a,"w","number") ? a.w : undefined)
         if(isValidString(a))
         {
             const [sxy,sw] = a.split(";")
@@ -52,7 +52,7 @@ export class Vec2 implements IVec2, IToVec3, IToSize, IToRGB, IToRGBA, IToHSL, I
             {
                 const parts = sxy.split(",")
                 if(isFixedTypeArray(parts,isValidString,2))
-                    return new this(parseFloat(parts[0]),parseFloat(parts[1]),isValidString(sw) ? parseFloat(sw) : undefined)
+                    return new this(parseFloat(parts[0]!),parseFloat(parts[1]!),isValidString(sw) ? parseFloat(sw) : undefined)
             }
         }
         if(isValidNumber(a))

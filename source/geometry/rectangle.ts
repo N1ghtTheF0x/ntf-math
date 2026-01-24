@@ -1,5 +1,5 @@
 import { ResolveError } from "../common/error"
-import { isValidString, hasObjectProperty, NodeJSCustomInspect, isFixedTypeArray, isValidNumber } from "@ntf/types"
+import { isValidString, hasTypedProperty, NodeJSCustomInspect, isFixedTypeArray, isValidNumber } from "@ntf/types"
 import { IToVec2, IVec2, Vec2, Vec2Array, Vec2Like, Vec2String } from "../vectors/vec2"
 import { BoundingBoxLike, IToBoundingBox } from "./bbox"
 import { IGeometryObject } from "./object"
@@ -54,11 +54,11 @@ export class Rectangle implements IRectangle, IGeometryObject, IToBoundingBox, I
         if(a == null || typeof a == "undefined")
             return undefined
         if(isFixedTypeArray(a,isValidNumber,4))
-            return new this([a[0],a[1]],[a[2],a[3]])
+            return new this([a[0]!,a[1]!],[a[2]!,a[3]!])
         if(isFixedTypeArray(a,isValidNumber,5))
         {
-            const rect = new this([a[0],a[1]],[a[3],a[4]])
-            rect.w = a[2]
+            const rect = new this([a[0]!,a[1]!],[a[3]!,a[4]!])
+            rect.w = a[2]!
             return rect
         }
         if(isValidString(a))
@@ -72,12 +72,12 @@ export class Rectangle implements IRectangle, IGeometryObject, IToBoundingBox, I
             rect.w = pos.w
             return rect
         }
-        if(hasObjectProperty(a,"toRectangle","function"))
+        if(hasTypedProperty(a,"toRectangle","function"))
             return this.cast(a.toRectangle())
-        if(hasObjectProperty(a,"x","number") && hasObjectProperty(a,"y","number") && hasObjectProperty(a,"width","number") && hasObjectProperty(a,"height","number"))
+        if(hasTypedProperty(a,"x","number") && hasTypedProperty(a,"y","number") && hasTypedProperty(a,"width","number") && hasTypedProperty(a,"height","number"))
         {
             const rect = new this([a.x,a.y],[a.width,a.height])
-            if(hasObjectProperty(a,"w","number"))
+            if(hasTypedProperty(a,"w","number"))
                 rect.w = a.w
             return rect
         }

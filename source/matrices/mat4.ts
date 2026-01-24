@@ -1,6 +1,6 @@
 import { ResolveError } from "../common/error"
 import { Vec3Like, Vec3, Vec3Arguments } from "../vectors/vec3"
-import { isValidNumber, isValidString, hasObjectProperty, checkArray, NodeJSCustomInspect, IToString, isFixedTypeArray, isFixedArray, checkFixedTypeArray } from "@ntf/types"
+import { isValidNumber, isValidString, hasTypedProperty, NodeJSCustomInspect, IToString, isFixedTypeArray, isFixedArray, checkFixedTypeArray } from "@ntf/types"
 import { IToMat3, Mat3Like } from "./mat3"
 import { BoundingBox, BoundingBoxLike } from "../geometry/bbox"
 
@@ -99,10 +99,10 @@ export class Mat4 implements IMat4, IToMat3, IToString
             const row0 = a[0], row1 = a[1], row2 = a[2], row3 = a[3]
             if(isFixedTypeArray(row0,isValidNumber,4) && isFixedTypeArray(row1,isValidNumber,4) && isFixedTypeArray(row2,isValidNumber,4) && isFixedTypeArray(row3,isValidNumber,4))
                 return new this([
-                    row0[0],row0[1],row0[2],row0[3],
-                    row1[0],row1[1],row1[2],row1[3],
-                    row2[0],row2[1],row2[2],row2[3],
-                    row3[0],row3[1],row3[2],row3[3]
+                    row0[0]!,row0[1]!,row0[2]!,row0[3]!,
+                    row1[0]!,row1[1]!,row1[2]!,row1[3]!,
+                    row2[0]!,row2[1]!,row2[2]!,row2[3]!,
+                    row3[0]!,row3[1]!,row3[2]!,row3[3]!
                 ])
         }
         if(isValidString(a))
@@ -111,13 +111,13 @@ export class Mat4 implements IMat4, IToMat3, IToString
             if(isFixedTypeArray(parts,isValidString,16))
                 return this.cast(parts.map((i) => parseFloat(i)))
         }
-        if(hasObjectProperty(a,"toMat4","function"))
+        if(hasTypedProperty(a,"toMat4","function"))
             return this.cast(a.toMat4())
         if(
-            hasObjectProperty(a,"m00","number") && hasObjectProperty(a,"m01","number") && hasObjectProperty(a,"m02","number") && hasObjectProperty(a,"m03","number") &&
-            hasObjectProperty(a,"m10","number") && hasObjectProperty(a,"m11","number") && hasObjectProperty(a,"m12","number") && hasObjectProperty(a,"m13","number") &&
-            hasObjectProperty(a,"m20","number") && hasObjectProperty(a,"m21","number") && hasObjectProperty(a,"m22","number") && hasObjectProperty(a,"m23","number") &&
-            hasObjectProperty(a,"m30","number") && hasObjectProperty(a,"m31","number") && hasObjectProperty(a,"m32","number") && hasObjectProperty(a,"m33","number")
+            hasTypedProperty(a,"m00","number") && hasTypedProperty(a,"m01","number") && hasTypedProperty(a,"m02","number") && hasTypedProperty(a,"m03","number") &&
+            hasTypedProperty(a,"m10","number") && hasTypedProperty(a,"m11","number") && hasTypedProperty(a,"m12","number") && hasTypedProperty(a,"m13","number") &&
+            hasTypedProperty(a,"m20","number") && hasTypedProperty(a,"m21","number") && hasTypedProperty(a,"m22","number") && hasTypedProperty(a,"m23","number") &&
+            hasTypedProperty(a,"m30","number") && hasTypedProperty(a,"m31","number") && hasTypedProperty(a,"m32","number") && hasTypedProperty(a,"m33","number")
         )
             return new this([
                 a.m00,a.m01,a.m02,a.m03,
@@ -246,7 +246,7 @@ export class Mat4 implements IMat4, IToMat3, IToString
         const b = Mat4.resolveArgs(args)
         const m = new Mat4
         for(let index = 0;index < this._raw.length;index++)
-            m._raw[index] = this._raw[index] + b._raw[index]
+            m._raw[index] = this._raw[index]! + b._raw[index]!
         return m
     }
     public subtract(mat: Mat4Like): Mat4
@@ -256,7 +256,7 @@ export class Mat4 implements IMat4, IToMat3, IToString
         const b = Mat4.resolveArgs(args)
         const m = new Mat4
         for(let index = 0;index < this._raw.length;index++)
-            m._raw[index] = this._raw[index] - b._raw[index]
+            m._raw[index] = this._raw[index]! - b._raw[index]!
         return m
     }
     public multiply(mat: Mat4Like): Mat4

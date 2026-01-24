@@ -1,4 +1,4 @@
-import { checkValidNumber, hasObjectProperty, isFixedTypeArray, isValidNumber, isValidString, IToString, NodeJSCustomInspect } from "@ntf/types"
+import { checkValidNumber, hasTypedProperty, isFixedTypeArray, isValidNumber, isValidString, IToString, NodeJSCustomInspect } from "@ntf/types"
 import { ResolveError } from "../common/error"
 import { Vec2, Vec2Arguments, Vec2Like } from "../vectors/vec2"
 import { Circle, CircleArguments, CircleLike } from "./circle"
@@ -56,10 +56,10 @@ export class BoundingBox implements IBoundingBox, IRectangle, IToRectangle, IToS
         if(a == null || typeof a == "undefined")
             return undefined
         if(isFixedTypeArray(a,isValidNumber,4))
-            return new this(a[0],a[1],a[2],a[3])
-        if(hasObjectProperty(a,"toBoundingBox","function"))
+            return new this(a[0]!,a[1]!,a[2]!,a[3]!)
+        if(hasTypedProperty(a,"toBoundingBox","function"))
             return this.cast(a.toBoundingBox())
-        if(hasObjectProperty(a,"left","number") && hasObjectProperty(a,"right","number") && hasObjectProperty(a,"top","number") && hasObjectProperty(a,"bottom","number"))
+        if(hasTypedProperty(a,"left","number") && hasTypedProperty(a,"right","number") && hasTypedProperty(a,"top","number") && hasTypedProperty(a,"bottom","number"))
             return new this(a.left,a.right,a.top,a.bottom)
         if(isValidString(a))
         {

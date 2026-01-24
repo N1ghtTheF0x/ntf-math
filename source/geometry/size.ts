@@ -1,5 +1,5 @@
 import { ResolveError } from "../common/error"
-import { isValidNumber, isValidString, hasObjectProperty, NodeJSCustomInspect, isFixedTypeArray, checkValidNumber } from "@ntf/types"
+import { isValidNumber, isValidString, hasTypedProperty, NodeJSCustomInspect, isFixedTypeArray, checkValidNumber } from "@ntf/types"
 import { IToVec2, Vec2Like } from "../vectors/vec2"
 import { IGeometryObject } from "./object"
 
@@ -44,10 +44,10 @@ export class Size implements ISize, IGeometryObject, IToVec2
         if(a == null || typeof a == "undefined")
             return undefined
         if(isFixedTypeArray(a,isValidNumber,2))
-            return new this(a[0],a[1])
-        if(hasObjectProperty(a,"toSize","function"))
+            return new this(a[0]!,a[1]!)
+        if(hasTypedProperty(a,"toSize","function"))
             return this.cast(a.toSize())
-        if(hasObjectProperty(a,"width","number") && hasObjectProperty(a,"height","number"))
+        if(hasTypedProperty(a,"width","number") && hasTypedProperty(a,"height","number"))
             return new this(a.width,a.height)
         if(isValidString(a))
         {

@@ -1,5 +1,5 @@
 import { ResolveError } from "../common/error"
-import { isValidNumber, isValidString, hasObjectProperty, NodeJSCustomInspect, isFixedTypeArray, checkValidNumber } from "@ntf/types"
+import { isValidNumber, isValidString, hasTypedProperty, NodeJSCustomInspect, isFixedTypeArray, checkValidNumber } from "@ntf/types"
 import { IToVec2, IVec2, Vec2, Vec2Arguments, Vec2Array, Vec2Like, Vec2String } from "../vectors/vec2"
 import { IGeometryObject } from "./object"
 
@@ -50,22 +50,22 @@ export class Circle implements ICircle, IGeometryObject, IToVec2
         if(a == null || typeof a == "undefined")
             return undefined
         if(isFixedTypeArray(a,isValidNumber,3))
-            return new this([a[0],a[1]],a[2])
+            return new this([a[0]!,a[1]!],a[2]!)
         if(isFixedTypeArray(a,isValidNumber,4))
         {
-            const c = new this([a[0],a[1]],a[3])
-            c.w = a[2]
+            const c = new this([a[0]!,a[1]!],a[3]!)
+            c.w = a[2]!
             return c
         }
-        if(hasObjectProperty(a,"toCircle","function"))
+        if(hasTypedProperty(a,"toCircle","function"))
             return this.cast(a.toCircle())
-        if(hasObjectProperty(a,"x","number") && hasObjectProperty(a,"y","number") && hasObjectProperty(a,"radius","number"))
-            return new this(hasObjectProperty(a,"w","number") ? [a.x,a.y,a.w] : [a.x,a.y],a.radius)
+        if(hasTypedProperty(a,"x","number") && hasTypedProperty(a,"y","number") && hasTypedProperty(a,"radius","number"))
+            return new this(hasTypedProperty(a,"w","number") ? [a.x,a.y,a.w] : [a.x,a.y],a.radius)
         if(isValidString(a))
         {
             const [spos,sradius] = a.split("|")
             const pos = Vec2.cast(spos)
-            if(typeof pos == "undefined")
+            if(pos === undefined || sradius === undefined)
                 return undefined
             const radius = parseFloat(sradius)
             if(!isNaN(radius))
